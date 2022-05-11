@@ -88,7 +88,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
   public static final class PlaybackInfoUpdate {
 
-    private boolean hasPendingChange; // 标识 playbackInfo 有改变
+    private boolean hasPendingChange;
 
     public PlaybackInfo playbackInfo;
     public int operationAcks;

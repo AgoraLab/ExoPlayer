@@ -265,7 +265,7 @@ import java.util.Arrays;
       DecoderInputBuffer buffer,
       SampleExtrasHolder extrasHolder,
       ParsableByteArray scratch) {
-    if (buffer.isEncrypted()) { // 加密的？
+    if (buffer.isEncrypted()) {
       allocationNode = readEncryptionData(allocationNode, buffer, extrasHolder, scratch);
     }
     // Read sample data, extracting supplemental data into a separate buffer if needed.

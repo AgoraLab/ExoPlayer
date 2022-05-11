@@ -447,7 +447,6 @@ public class PlayerActivity extends AppCompatActivity
 
     private static final String TAG = "PlayerEventListener";
 
-    // 播放状态改变
     @Override
     public void onPlaybackStateChanged(@Player.State int playbackState) {
       if (playbackState == Player.STATE_ENDED) {
@@ -456,7 +455,6 @@ public class PlayerActivity extends AppCompatActivity
       updateButtonVisibility();
     }
 
-    // 播放错误
     @Override
     public void onPlayerError(PlaybackException error) {
       if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
@@ -468,7 +466,6 @@ public class PlayerActivity extends AppCompatActivity
       }
     }
 
-    // track信息改变？
     @Override
     @SuppressWarnings("ReferenceEquality")
     public void onTracksInfoChanged(TracksInfo tracksInfo) {
@@ -490,8 +487,6 @@ public class PlayerActivity extends AppCompatActivity
 
     @Override
     public void onEvents(Player player, Player.Events events) {
-      int i = 1;
-      i = i;
       if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)
           || events.contains(Player.EVENT_PLAY_WHEN_READY_CHANGED)) {
       }

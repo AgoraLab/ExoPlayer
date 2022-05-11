@@ -131,13 +131,13 @@ public final class H264Reader implements ElementaryStreamReader {
 
     // Append the data to the buffer.
     totalBytesWritten += data.bytesLeft();
-    output.sampleData(data, data.bytesLeft());    // 队列输出
+    output.sampleData(data, data.bytesLeft());
 
     // Scan the appended data, processing NAL units as they are encountered
     while (true) {
       int nalUnitOffset = NalUnitUtil.findNalUnit(dataArray, offset, limit, prefixFlags);
 
-      if (nalUnitOffset == limit) { // 没有找到nalu 的开头
+      if (nalUnitOffset == limit) {
         // We've scanned to the end of the data without finding the start of another NAL unit.
         nalUnitData(dataArray, offset, limit);
         return;
@@ -157,14 +157,12 @@ public final class H264Reader implements ElementaryStreamReader {
       // Indicate the end of the previous NAL unit. If the length to the start of the next unit
       // is negative then we wrote too many bytes to the NAL buffers. Discard the excess bytes
       // when notifying that the unit has ended.
-      // 结束上一个 nalu
       endNalUnit(
           absolutePosition,
           bytesWrittenPastPosition,
           lengthToNalUnit < 0 ? -lengthToNalUnit : 0,
           pesTimeUs);
       // Indicate the start of the next NAL unit.
-      // 开始下一个nalu
       startNalUnit(absolutePosition, nalUnitType, pesTimeUs);
       // Continue scanning the data.
       offset = nalUnitOffset + 3;

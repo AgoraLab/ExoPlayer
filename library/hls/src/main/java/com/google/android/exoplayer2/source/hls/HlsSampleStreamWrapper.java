@@ -797,7 +797,7 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
     loadingChunk = loadable;
     long elapsedRealtimeMs =
         loader.startLoading(
-            loadable, this, loadErrorHandlingPolicy.getMinimumLoadableRetryCount(loadable.type)); // 开始loading loadable对象
+            loadable, this, loadErrorHandlingPolicy.getMinimumLoadableRetryCount(loadable.type));
     mediaSourceEventDispatcher.loadStarted(
         new LoadEventInfo(loadable.loadTaskId, loadable.dataSpec, elapsedRealtimeMs),
         loadable.type,
