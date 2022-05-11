@@ -100,7 +100,7 @@ import com.google.android.exoplayer2.video.AvcConfig;
       return false;
     } else if (packetType == AVC_PACKET_TYPE_AVC_NALU && hasOutputFormat) {
       boolean isKeyframe = frameType == VIDEO_FRAME_KEYFRAME;
-      if (!hasOutputKeyframe && !isKeyframe) {
+      if (!hasOutputKeyframe && !isKeyframe) {    // 没有输出过I帧，并且当前也不是I帧，则跳过
         return false;
       }
       // TODO: Deduplicate with Mp4Extractor.

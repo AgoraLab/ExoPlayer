@@ -18,9 +18,11 @@ package com.google.android.exoplayer2.util;
 import android.annotation.SuppressLint;
 import android.os.Looper;
 import android.widget.TextView;
+import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.SeiDataItem;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import java.util.Locale;
 
@@ -37,6 +39,14 @@ public class DebugTextViewHelper implements Player.Listener, Runnable {
 
   private boolean started;
 
+  @Nullable private byte[] extractSeiData;
+  private long extractSeiDataPts;
+
+  @Nullable private byte[] renderSeiData;
+  private long renderSeiDataPts;
+
+
+
   /**
    * @param player The {@link ExoPlayer} from which debug information should be obtained. Only
    *     players which are accessed on the main thread are supported ({@code
@@ -47,6 +57,17 @@ public class DebugTextViewHelper implements Player.Listener, Runnable {
     Assertions.checkArgument(player.getApplicationLooper() == Looper.getMainLooper());
     this.player = player;
     this.textView = textView;
+  }
+
+
+  public void setExtractSeiData(byte[] data, long pts){
+    extractSeiData = data;
+    extractSeiDataPts = pts;
+  }
+
+  public void setRenderSeiData(byte[] data, long pts){
+    renderSeiData = data;
+    renderSeiDataPts = pts;
   }
 
   /**
@@ -114,7 +135,7 @@ public class DebugTextViewHelper implements Player.Listener, Runnable {
 
   /** Returns the debugging information string to be shown by the target {@link TextView}. */
   protected String getDebugString() {
-    return getPlayerStateString() + getVideoString() + getAudioString();
+    return getPlayerStateString() + getVideoString() + getAudioString() + getRenderPts() + getSeiDataString();
   }
 
   /** Returns a string containing player state debugging information. */
@@ -183,6 +204,31 @@ public class DebugTextViewHelper implements Player.Listener, Runnable {
         + format.channelCount
         + getDecoderCountersBufferCountString(decoderCounters)
         + ")";
+  }
+
+  protected String getRenderPts(){
+    long currentPositionMs = player.getCurrentPosition();
+    return "\n"
+        + "currentPositionMs: " + currentPositionMs;
+  }
+
+  protected String getSeiDataString() {
+
+    String seiDataString = new String();
+
+    if (null != extractSeiData){
+      String extractSeiContent = new String(extractSeiData);
+      extractSeiContent = extractSeiContent.substring(15);
+      seiDataString += "\nextractSeiDataItem ---> content: " + extractSeiContent + " pts:" + Util.usToMs(extractSeiDataPts);
+    }
+
+    if(null != renderSeiData){
+      String renderSeiContent = new String(renderSeiData);
+      renderSeiContent = renderSeiContent.substring(15);
+      seiDataString += "\nrenderSeiDataItem  ---> content: " + renderSeiContent + " pts:" + Util.usToMs(renderSeiDataPts);
+    }
+
+    return seiDataString;
   }
 
   private static String getDecoderCountersBufferCountString(DecoderCounters counters) {

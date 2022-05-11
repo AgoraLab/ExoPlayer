@@ -49,6 +49,7 @@ import com.google.android.exoplayer2.source.MediaLoadData;
 import com.google.android.exoplayer2.source.MediaSourceEventListener;
 import com.google.android.exoplayer2.source.SampleQueue;
 import com.google.android.exoplayer2.source.SampleQueue.UpstreamFormatChangedListener;
+import com.google.android.exoplayer2.source.SampleQueue.UserDataListener;
 import com.google.android.exoplayer2.source.SampleStream;
 import com.google.android.exoplayer2.source.SampleStream.ReadFlags;
 import com.google.android.exoplayer2.source.SequenceableLoader;
@@ -94,7 +95,8 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
         Loader.ReleaseCallback,
         SequenceableLoader,
         ExtractorOutput,
-        UpstreamFormatChangedListener {
+        UpstreamFormatChangedListener ,
+        UserDataListener {
 
   /** A callback to be notified of events. */
   public interface Callback extends SequenceableLoader.Callback<HlsSampleStreamWrapper> {
@@ -112,6 +114,15 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
      * given url changes.
      */
     void onPlaylistRefreshRequired(Uri playlistUrl);
+
+
+    /**
+     *
+     * @param userData
+     * @param length
+     * @param pts
+     */
+    default void onUserDataUnregisted(ParsableByteArray userData, long pts){}
   }
 
   private static final String TAG = "HlsSampleStreamWrapper";
@@ -788,7 +799,7 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
     loadingChunk = loadable;
     long elapsedRealtimeMs =
         loader.startLoading(
-            loadable, this, loadErrorHandlingPolicy.getMinimumLoadableRetryCount(loadable.type));
+            loadable, this, loadErrorHandlingPolicy.getMinimumLoadableRetryCount(loadable.type)); // 开始loading loadable对象
     mediaSourceEventDispatcher.loadStarted(
         new LoadEventInfo(loadable.loadTaskId, loadable.dataSpec, elapsedRealtimeMs),
         loadable.type,
@@ -1132,6 +1143,7 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
       sampleQueue.setSourceChunk(sourceChunk);
     }
     sampleQueue.setUpstreamFormatChangeListener(this);
+    sampleQueue.setUserDataListener(this);
     sampleQueueTrackIds = Arrays.copyOf(sampleQueueTrackIds, trackCount + 1);
     sampleQueueTrackIds[trackCount] = id;
     sampleQueues = Util.nullSafeArrayAppend(sampleQueues, sampleQueue);
@@ -1164,6 +1176,17 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
   @Override
   public void onUpstreamFormatChanged(Format format) {
     handler.post(maybeFinishPrepareRunnable);
+  }
+
+  @Override
+  public void onUserData(ParsableByteArray data, long pts){
+
+    if(null != callback){
+      callback.onUserDataUnregisted(data, pts);
+    }
+
+    // cache to a queue, return to user when render time
+
   }
 
   // Called by the loading thread.

@@ -28,6 +28,22 @@ import java.util.List;
 /** Information about an ongoing playback. */
 /* package */ final class PlaybackInfo {
 
+
+  /**  */
+  public static class SeiDataItemInfo {
+
+    public static final int WHEN_EXTRACT = 1;
+    public static final int WHEN_RENDER = 2;
+
+    public SeiDataItem seiDataItem;
+    public int when;
+
+    public SeiDataItemInfo(SeiDataItem seiDataItem, int when){
+      this.seiDataItem = seiDataItem;
+      this.when = when;
+    }
+  }
+
   /**
    * Placeholder media period id used while the timeline is empty and no period id is specified.
    * This id is used when playback infos are created with {@link #createDummy(TrackSelectorResult)}.
@@ -91,6 +107,9 @@ import java.util.List;
    */
   public volatile long positionUs;
 
+
+  @Nullable public SeiDataItemInfo seiDataItemInfo;
+
   /**
    * Creates an empty placeholder playback info which can be used for masking as long as no real
    * playback info is available.
@@ -119,7 +138,8 @@ import java.util.List;
         /* totalBufferedDurationUs= */ 0,
         /* positionUs= */ 0,
         /* offloadSchedulingEnabled= */ false,
-        /* sleepingForOffload= */ false);
+        /* sleepingForOffload= */ false,
+        null);
   }
 
   /**
@@ -163,7 +183,8 @@ import java.util.List;
       long totalBufferedDurationUs,
       long positionUs,
       boolean offloadSchedulingEnabled,
-      boolean sleepingForOffload) {
+      boolean sleepingForOffload,
+      SeiDataItemInfo seiDataItemInfo) {
     this.timeline = timeline;
     this.periodId = periodId;
     this.requestedContentPositionUs = requestedContentPositionUs;
@@ -183,6 +204,7 @@ import java.util.List;
     this.positionUs = positionUs;
     this.offloadSchedulingEnabled = offloadSchedulingEnabled;
     this.sleepingForOffload = sleepingForOffload;
+    this.seiDataItemInfo = seiDataItemInfo;
   }
 
   /** Returns a placeholder period id for an empty timeline. */
@@ -234,7 +256,8 @@ import java.util.List;
         totalBufferedDurationUs,
         positionUs,
         offloadSchedulingEnabled,
-        sleepingForOffload);
+        sleepingForOffload,
+        seiDataItemInfo);
   }
 
   /**
@@ -264,7 +287,8 @@ import java.util.List;
         totalBufferedDurationUs,
         positionUs,
         offloadSchedulingEnabled,
-        sleepingForOffload);
+        sleepingForOffload,
+        seiDataItemInfo);
   }
 
   /**
@@ -294,7 +318,8 @@ import java.util.List;
         totalBufferedDurationUs,
         positionUs,
         offloadSchedulingEnabled,
-        sleepingForOffload);
+        sleepingForOffload,
+        seiDataItemInfo);
   }
 
   /**
@@ -324,7 +349,8 @@ import java.util.List;
         totalBufferedDurationUs,
         positionUs,
         offloadSchedulingEnabled,
-        sleepingForOffload);
+        sleepingForOffload,
+        seiDataItemInfo);
   }
 
   /**
@@ -354,7 +380,8 @@ import java.util.List;
         totalBufferedDurationUs,
         positionUs,
         offloadSchedulingEnabled,
-        sleepingForOffload);
+        sleepingForOffload,
+        seiDataItemInfo);
   }
 
   /**
@@ -384,7 +411,8 @@ import java.util.List;
         totalBufferedDurationUs,
         positionUs,
         offloadSchedulingEnabled,
-        sleepingForOffload);
+        sleepingForOffload,
+        seiDataItemInfo);
   }
 
   /**
@@ -418,7 +446,8 @@ import java.util.List;
         totalBufferedDurationUs,
         positionUs,
         offloadSchedulingEnabled,
-        sleepingForOffload);
+        sleepingForOffload,
+        seiDataItemInfo);
   }
 
   /**
@@ -448,7 +477,8 @@ import java.util.List;
         totalBufferedDurationUs,
         positionUs,
         offloadSchedulingEnabled,
-        sleepingForOffload);
+        sleepingForOffload,
+        seiDataItemInfo);
   }
 
   /**
@@ -479,7 +509,8 @@ import java.util.List;
         totalBufferedDurationUs,
         positionUs,
         offloadSchedulingEnabled,
-        sleepingForOffload);
+        sleepingForOffload,
+        seiDataItemInfo);
   }
 
   /**
@@ -509,6 +540,32 @@ import java.util.List;
         totalBufferedDurationUs,
         positionUs,
         offloadSchedulingEnabled,
-        sleepingForOffload);
+        sleepingForOffload,
+        seiDataItemInfo);
+  }
+
+  @CheckResult
+  public PlaybackInfo copyWithSeiDataItem(SeiDataItemInfo seiDataItemInfo) {
+    return new PlaybackInfo(
+        timeline,
+        periodId,
+        requestedContentPositionUs,
+        discontinuityStartPositionUs,
+        playbackState,
+        playbackError,
+        isLoading,
+        trackGroups,
+        trackSelectorResult,
+        staticMetadata,
+        loadingMediaPeriodId,
+        playWhenReady,
+        playbackSuppressionReason,
+        playbackParameters,
+        bufferedPositionUs,
+        totalBufferedDurationUs,
+        positionUs,
+        offloadSchedulingEnabled,
+        sleepingForOffload,
+        seiDataItemInfo);
   }
 }

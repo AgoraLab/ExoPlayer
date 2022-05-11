@@ -25,6 +25,7 @@ import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.source.MediaSource.MediaPeriodId;
 import com.google.android.exoplayer2.trackselection.ExoTrackSelection;
 import com.google.android.exoplayer2.upstream.Allocator;
+import com.google.android.exoplayer2.util.ParsableByteArray;
 import java.io.IOException;
 import org.checkerframework.checker.nullness.compatqual.NullableType;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
@@ -63,7 +64,6 @@ public final class MaskingMediaPeriod implements MediaPeriod, MediaPeriod.Callba
   @Nullable private PrepareListener listener;
   private boolean notifiedPrepareError;
   private long preparePositionOverrideUs;
-
   /**
    * Creates a new masking media period. The media source must be set via {@link
    * #setMediaSource(MediaSource)} before preparation can start.
@@ -78,6 +78,14 @@ public final class MaskingMediaPeriod implements MediaPeriod, MediaPeriod.Callba
     this.preparePositionUs = preparePositionUs;
     preparePositionOverrideUs = C.TIME_UNSET;
   }
+
+  @Override
+  public void onUserDataUnregisted(ParsableByteArray data, long pts){
+    if(null != callback){
+      callback.onUserDataUnregisted(data, pts);
+    }
+  }
+
 
   /**
    * Sets a listener for preparation events.

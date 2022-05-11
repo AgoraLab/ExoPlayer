@@ -22,6 +22,7 @@ import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.offline.StreamKey;
 import com.google.android.exoplayer2.source.MediaSource.MediaSourceCaller;
 import com.google.android.exoplayer2.trackselection.ExoTrackSelection;
+import com.google.android.exoplayer2.util.ParsableByteArray;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -51,6 +52,9 @@ public interface MediaPeriod extends SequenceableLoader {
      * @param mediaPeriod The prepared {@link MediaPeriod}.
      */
     void onPrepared(MediaPeriod mediaPeriod);
+
+
+    default void onUserDataUnregisted(ParsableByteArray userData, long pts){}
   }
 
   /**

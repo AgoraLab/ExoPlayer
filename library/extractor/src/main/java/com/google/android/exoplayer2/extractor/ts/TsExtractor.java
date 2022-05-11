@@ -383,7 +383,7 @@ public final class TsExtractor implements Extractor {
     boolean wereTracksEnded = tracksEnded;
     if (shouldConsumePacketPayload(pid)) {
       tsPacketBuffer.setLimit(endOfPacket);
-      payloadReader.consume(tsPacketBuffer, packetHeaderFlags);
+      payloadReader.consume(tsPacketBuffer, packetHeaderFlags); // 消费数据
       tsPacketBuffer.setLimit(limit);
     }
     if (mode != MODE_HLS && !wereTracksEnded && tracksEnded && inputLength != C.LENGTH_UNSET) {

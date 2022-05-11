@@ -57,6 +57,7 @@ import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Clock;
 import com.google.android.exoplayer2.util.HandlerWrapper;
 import com.google.android.exoplayer2.util.Log;
+import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.TraceUtil;
 import com.google.android.exoplayer2.util.Util;
 import com.google.common.base.Supplier;
@@ -65,6 +66,7 @@ import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -80,9 +82,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
   private static final String TAG = "ExoPlayerImplInternal";
 
+  private static final int MAX_COUNT_OF_SEI_DATA_ITEM_CACHE = 100;
+  private static final int SEI_VALID_TIME_US = 1 * 1000 * 1000;
+
   public static final class PlaybackInfoUpdate {
 
-    private boolean hasPendingChange;
+    private boolean hasPendingChange; // 标识 playbackInfo 有改变
 
     public PlaybackInfo playbackInfo;
     public int operationAcks;
@@ -157,6 +162,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
   private static final int MSG_SET_PAUSE_AT_END_OF_WINDOW = 23;
   private static final int MSG_SET_OFFLOAD_SCHEDULING_ENABLED = 24;
   private static final int MSG_ATTEMPT_RENDERER_ERROR_RECOVERY = 25;
+  private static final int MSG_USER_DATA_UNREGISTED = 30;
 
   private static final int ACTIVE_INTERVAL_MS = 10;
   private static final int IDLE_INTERVAL_MS = 1000;
@@ -223,6 +229,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
   @Nullable private ExoPlaybackException pendingRecoverableRendererError;
   private long setForegroundModeTimeoutMs;
   private long playbackMaybeBecameStuckAtMs;
+  private long playbackInfoLastNotifyTimeUs;
+
+  // sei data cache
+  private LinkedList<SeiDataItem> seiDataCache;
 
   public ExoPlayerImplInternal(
       Renderer[] renderers,
@@ -287,6 +297,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
     internalPlaybackThread.start();
     playbackLooper = internalPlaybackThread.getLooper();
     handler = clock.createHandler(playbackLooper, this);
+    playbackInfoLastNotifyTimeUs = 0;
+
+    seiDataCache = new LinkedList<SeiDataItem>();
+  }
+
+  @Override
+  public void onUserDataUnregisted(ParsableByteArray data, long pts){
+
+    SeiDataItem dataItem = new SeiDataItem(SeiDataItem.SEI_DATA_TYPE_USER_DATA_UNREGISTED, data, pts);
+    handler
+        .obtainMessage(MSG_USER_DATA_UNREGISTED, dataItem)
+        .sendToTarget();
   }
 
   public void experimentalSetForegroundModeTimeoutMs(long setForegroundModeTimeoutMs) {
@@ -559,6 +581,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
         case MSG_ATTEMPT_RENDERER_ERROR_RECOVERY:
           attemptRendererErrorRecovery();
           break;
+        case MSG_USER_DATA_UNREGISTED:
+          updateSeiDataItem((SeiDataItem)msg.obj);
+          break;
         case MSG_RELEASE:
           releaseInternal();
           // Return immediately to not send playback info updates after release.
@@ -685,10 +710,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
   }
 
   private void maybeNotifyPlaybackInfoChanged() {
+
     playbackInfoUpdate.setPlaybackInfo(playbackInfo);
     if (playbackInfoUpdate.hasPendingChange) {
       playbackInfoUpdateListener.onPlaybackInfoUpdate(playbackInfoUpdate);
       playbackInfoUpdate = new PlaybackInfoUpdate(playbackInfo);
+
     }
   }
 
@@ -921,6 +948,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
       long periodPositionUs = playingPeriodHolder.toPeriodTime(rendererPositionUs);
       maybeTriggerPendingMessages(playbackInfo.positionUs, periodPositionUs);
       playbackInfo.positionUs = periodPositionUs;
+
+      tryToDeliverSeiData(periodPositionUs);
     }
 
     // Update the buffered position and total buffered duration.
@@ -1470,7 +1499,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
             /* totalBufferedDurationUs= */ 0,
             /* positionUs= */ startPositionUs,
             offloadSchedulingEnabled,
-            /* sleepingForOffload= */ false);
+            /* sleepingForOffload= */ false,
+            null);
     if (releaseMediaSourceList) {
       mediaSourceList.release();
     }
@@ -2543,6 +2573,66 @@ import java.util.concurrent.atomic.AtomicBoolean;
   private boolean shouldPlayWhenReady() {
     return playbackInfo.playWhenReady
         && playbackInfo.playbackSuppressionReason == Player.PLAYBACK_SUPPRESSION_REASON_NONE;
+  }
+
+
+  private void updateSeiDataItem(SeiDataItem seiDataItem){
+
+    if(appendSeiDataItem(seiDataItem) &&
+        lastSeiDataItemIsUserDataUnregistedType()){
+      playbackInfo = playbackInfo.copyWithSeiDataItem(new PlaybackInfo.SeiDataItemInfo(
+          seiDataItem,
+          PlaybackInfo.SeiDataItemInfo.WHEN_EXTRACT));
+    }
+  }
+
+  private boolean appendSeiDataItem(SeiDataItem seiDataItem){
+    boolean isAppended = false;
+
+    SeiDataItem lastSeiDataItem = seiDataCache.peekLast();
+    if(null != seiDataItem && lastSeiDataItem != seiDataItem){
+
+      // limit seiDataCache lenght
+      if(MAX_COUNT_OF_SEI_DATA_ITEM_CACHE < seiDataCache.size()){
+        seiDataCache.poll();
+      }
+
+      seiDataCache.add(seiDataItem);
+      isAppended = true;
+    }
+
+    return isAppended;
+  }
+
+
+  private void tryToDeliverSeiData(long currentTimeUs){
+
+    while(seiDataCache.size() > 0){
+
+      SeiDataItem firstSeiDataItem = seiDataCache.peek();
+      if(currentTimeUs > firstSeiDataItem.getPts()){
+
+        if(currentTimeUs - firstSeiDataItem.getPts() > SEI_VALID_TIME_US){  // more than 1 second, then discard
+          seiDataCache.poll();
+          continue;
+        }
+
+        seiDataCache.poll();
+
+        playbackInfo = playbackInfo.copyWithSeiDataItem(new PlaybackInfo.SeiDataItemInfo(firstSeiDataItem,
+            PlaybackInfo.SeiDataItemInfo.WHEN_RENDER));
+      } else {
+        break;
+      }
+    }
+  }
+
+  private boolean lastSeiDataItemIsUserDataUnregistedType(){
+    SeiDataItem lastSeiDataItem = seiDataCache.peekLast();
+    if(null != lastSeiDataItem) {
+      return lastSeiDataItem.getSeiDataType() == SeiDataItem.SEI_DATA_TYPE_USER_DATA_UNREGISTED;
+    }
+    return false;
   }
 
   private static PositionUpdateForPlaylistChange resolvePositionForPlaylistChange(

@@ -19,8 +19,15 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.util.Log;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 
+
+
+
 /** Utility methods for handling CEA-608/708 messages. Defined in A/53 Part 4:2009. */
 public final class CeaUtil {
+
+  public interface SeiRetrivalInterface {
+    public void onSeiData(int payloadType, int payloadSize, byte [] data, int position);
+  }
 
   private static final String TAG = "CeaUtil";
 
@@ -40,12 +47,24 @@ public final class CeaUtil {
    * @param seiBuffer The unescaped SEI NAL unit data, excluding the NAL unit start code and type.
    * @param outputs The outputs to which any samples should be written.
    */
+
   public static void consume(
       long presentationTimeUs, ParsableByteArray seiBuffer, TrackOutput[] outputs) {
+    consume(presentationTimeUs, seiBuffer, outputs, null);
+  }
+
+  public static void consume(
+      long presentationTimeUs, ParsableByteArray seiBuffer, TrackOutput[] outputs, SeiRetrivalInterface seiRetrival) {
     while (seiBuffer.bytesLeft() > 1 /* last byte will be rbsp_trailing_bits */) {
       int payloadType = readNon255TerminatedValue(seiBuffer);
       int payloadSize = readNon255TerminatedValue(seiBuffer);
       int nextPayloadPosition = seiBuffer.getPosition() + payloadSize;
+
+      //
+      if(null != seiRetrival && -1 !=payloadSize && payloadSize <= seiBuffer.bytesLeft()){
+        seiRetrival.onSeiData(payloadType, payloadSize, seiBuffer.getData(), seiBuffer.getPosition());
+      }
+
       // Process the payload.
       if (payloadSize == -1 || payloadSize > seiBuffer.bytesLeft()) {
         // This might occur if we're trying to read an encrypted SEI NAL unit.

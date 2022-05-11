@@ -34,6 +34,7 @@ import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.RenderersFactory;
+import com.google.android.exoplayer2.SeiDataItem;
 import com.google.android.exoplayer2.TracksInfo;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.drm.FrameworkMediaDrm;
@@ -52,6 +53,7 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.util.DebugTextViewHelper;
 import com.google.android.exoplayer2.util.ErrorMessageProvider;
 import com.google.android.exoplayer2.util.EventLogger;
+import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.Util;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -277,6 +279,8 @@ public class PlayerActivity extends AppCompatActivity
 
       trackSelector = new DefaultTrackSelector(/* context= */ this);
       lastSeenTracksInfo = TracksInfo.EMPTY;
+
+      // 创建播放器
       player =
           new ExoPlayer.Builder(/* context= */ this)
               .setRenderersFactory(renderersFactory)
@@ -440,6 +444,7 @@ public class PlayerActivity extends AppCompatActivity
 
   private class PlayerEventListener implements Player.Listener {
 
+    // 播放状态改变
     @Override
     public void onPlaybackStateChanged(@Player.State int playbackState) {
       if (playbackState == Player.STATE_ENDED) {
@@ -448,6 +453,7 @@ public class PlayerActivity extends AppCompatActivity
       updateButtonVisibility();
     }
 
+    // 播放错误
     @Override
     public void onPlayerError(PlaybackException error) {
       if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
@@ -459,6 +465,7 @@ public class PlayerActivity extends AppCompatActivity
       }
     }
 
+    // track信息改变？
     @Override
     @SuppressWarnings("ReferenceEquality")
     public void onTracksInfoChanged(TracksInfo tracksInfo) {
@@ -475,6 +482,26 @@ public class PlayerActivity extends AppCompatActivity
         showToast(R.string.error_unsupported_audio);
       }
       lastSeenTracksInfo = tracksInfo;
+    }
+
+
+    @Override
+    public void onEvents(Player player, Player.Events events) {
+      int i = 1;
+      i = i;
+      if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)
+          || events.contains(Player.EVENT_PLAY_WHEN_READY_CHANGED)) {
+      }
+    }
+
+    @Override
+    public void onUserDataUnregistedAfterExtract(byte[] data, int lenght, long pts){
+      debugViewHelper.setExtractSeiData(data, pts);
+    }
+
+    @Override
+    public void onUserDataUnregistedWhenRender(byte[] data, int lenght, long pts){
+      debugViewHelper.setRenderSeiData(data, pts);
     }
   }
 

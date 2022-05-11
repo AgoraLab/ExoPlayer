@@ -1045,6 +1045,10 @@ public interface Player {
      * @param metadata The metadata.
      */
     default void onMetadata(Metadata metadata) {}
+
+    default void onUserDataUnregistedAfterExtract(byte[] data, int lenght, long pts){}
+
+    default void onUserDataUnregistedWhenRender(byte[] data, int lenght, long pts){}
   }
 
   /**
@@ -1302,7 +1306,9 @@ public interface Player {
     EVENT_CUES,
     EVENT_METADATA,
     EVENT_DEVICE_INFO_CHANGED,
-    EVENT_DEVICE_VOLUME_CHANGED
+    EVENT_DEVICE_VOLUME_CHANGED,
+    EVENT_USER_DATA_UNREGISTED,
+    EVENT_USER_DATA_UNREGISTED_RENDER
   })
   @interface Event {}
   /** {@link #getCurrentTimeline()} changed. */
@@ -1373,6 +1379,10 @@ public interface Player {
   int EVENT_DEVICE_INFO_CHANGED = 29;
   /** {@link #getDeviceVolume()} changed. */
   int EVENT_DEVICE_VOLUME_CHANGED = 30;
+  /** */
+  int EVENT_USER_DATA_UNREGISTED = 31;
+
+  int EVENT_USER_DATA_UNREGISTED_RENDER = 32;
 
   /**
    * Commands that can be executed on a {@code Player}. One of {@link #COMMAND_PLAY_PAUSE}, {@link

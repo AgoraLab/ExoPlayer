@@ -65,6 +65,11 @@ public class SampleQueue implements TrackOutput {
     void onUpstreamFormatChanged(Format format);
   }
 
+
+  public interface UserDataListener {
+    void onUserData(ParsableByteArray data, long pts);
+  }
+
   @VisibleForTesting /* package */ static final int SAMPLE_CAPACITY_INCREMENT = 1000;
   private static final String TAG = "SampleQueue";
 
@@ -74,6 +79,7 @@ public class SampleQueue implements TrackOutput {
   @Nullable private final DrmSessionManager drmSessionManager;
   @Nullable private final DrmSessionEventListener.EventDispatcher drmEventDispatcher;
   @Nullable private UpstreamFormatChangedListener upstreamFormatChangeListener;
+  @Nullable private UserDataListener userDataListener;
 
   @Nullable private Format downstreamFormat;
   @Nullable private DrmSession currentDrmSession;
@@ -570,6 +576,11 @@ public class SampleQueue implements TrackOutput {
     upstreamFormatChangeListener = listener;
   }
 
+
+  public final void setUserDataListener( @Nullable UserDataListener listener) {
+    userDataListener = listener;
+  }
+
   // TrackOutput implementation. Called by the loading thread.
 
   @Override
@@ -641,6 +652,13 @@ public class SampleQueue implements TrackOutput {
 
     long absoluteOffset = sampleDataQueue.getTotalBytesWritten() - size - offset;
     commitSample(timeUs, flags, absoluteOffset, size, cryptoData);
+  }
+
+  @Override
+  public void userDataNotify(ParsableByteArray data, long pts) {
+    if(null != userDataListener){
+      userDataListener.onUserData(data, pts);
+    }
   }
 
   /**

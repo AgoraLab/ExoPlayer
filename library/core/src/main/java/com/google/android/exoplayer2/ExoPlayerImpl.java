@@ -94,6 +94,7 @@ import com.google.android.exoplayer2.video.spherical.SphericalGLSurfaceView;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeoutException;
@@ -111,6 +112,8 @@ import java.util.concurrent.TimeoutException;
   }
 
   private static final String TAG = "ExoPlayerImpl";
+
+
 
   /**
    * This empty track selector result can only be used for {@link PlaybackInfo#trackSelectorResult}
@@ -1844,6 +1847,33 @@ import java.util.concurrent.TimeoutException;
       updatePriorityTaskManagerForIsLoadingChange(newPlaybackInfo.isLoading);
     }
 
+    if(null != newPlaybackInfo.seiDataItemInfo &&
+        newPlaybackInfo.seiDataItemInfo != previousPlaybackInfo.seiDataItemInfo
+        ){
+      SeiDataItem lastSeiDataItem = newPlaybackInfo.seiDataItemInfo.seiDataItem;
+
+      if(PlaybackInfo.SeiDataItemInfo.WHEN_EXTRACT == newPlaybackInfo.seiDataItemInfo.when){
+        byte[] data = lastSeiDataItem.getData().getData();
+        listeners.queueEvent(
+            Player.EVENT_USER_DATA_UNREGISTED,
+            listener -> listener.onUserDataUnregistedAfterExtract(
+                data,
+                data.length,
+                lastSeiDataItem.getPts())
+        );
+
+      } else if(PlaybackInfo.SeiDataItemInfo.WHEN_RENDER == newPlaybackInfo.seiDataItemInfo.when){
+        byte[] data = lastSeiDataItem.getData().getData();
+        listeners.queueEvent(
+            Player.EVENT_USER_DATA_UNREGISTED,
+            listener -> listener.onUserDataUnregistedWhenRender(
+                data,
+                data.length,
+                lastSeiDataItem.getPts())
+        );
+      }
+    }
+
     if (!previousPlaybackInfo.timeline.equals(newPlaybackInfo.timeline)) {
       listeners.queueEvent(
           Player.EVENT_TIMELINE_CHANGED,
@@ -1943,6 +1973,7 @@ import java.util.concurrent.TimeoutException;
     if (seekProcessed) {
       listeners.queueEvent(/* eventFlag= */ C.INDEX_UNSET, Listener::onSeekProcessed);
     }
+
     updateAvailableCommands();
     listeners.flushEvents();
 
@@ -1958,6 +1989,7 @@ import java.util.concurrent.TimeoutException;
       }
     }
   }
+
 
   private PositionInfo getPreviousPositionInfo(
       @DiscontinuityReason int positionDiscontinuityReason,

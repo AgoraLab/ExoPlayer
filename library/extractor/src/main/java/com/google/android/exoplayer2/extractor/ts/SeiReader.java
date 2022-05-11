@@ -30,8 +30,18 @@ import java.util.List;
 /** Consumes SEI buffers, outputting contained CEA-608/708 messages to a {@link TrackOutput}. */
 public final class SeiReader {
 
+
+  private static final String TAG = "SeiReader";
+
+  private static final int PAYLOAD_TYPE_USER_DATA_UNREGISTERED = 5;
+
   private final List<Format> closedCaptionFormats;
   private final TrackOutput[] outputs;
+
+
+  public interface SeiDataCallback {
+    public void onUserDataUnregisted(ParsableByteArray userData, long pts);
+  }
 
   /** @param closedCaptionFormats A list of formats for the closed caption channels to expose. */
   public SeiReader(List<Format> closedCaptionFormats) {
@@ -63,7 +73,23 @@ public final class SeiReader {
     }
   }
 
-  public void consume(long pesTimeUs, ParsableByteArray seiBuffer) {
-    CeaUtil.consume(pesTimeUs, seiBuffer, outputs);
+
+
+  public void consume(long pesTimeUs, ParsableByteArray seiBuffer){
+    consume(pesTimeUs, seiBuffer, null);
+  }
+
+  public void consume(long pesTimeUs, ParsableByteArray seiBuffer, SeiDataCallback seiDataCallback) {
+
+    CeaUtil.consume(pesTimeUs, seiBuffer, outputs, (int payloadType, int payloadSize, byte [] data, int position)->{
+      if(PAYLOAD_TYPE_USER_DATA_UNREGISTERED == payloadType && null != seiDataCallback){
+
+        ParsableByteArray userData = new ParsableByteArray(payloadSize);
+        System.arraycopy(data, position, userData.getData(), 0, payloadSize);
+
+        seiDataCallback.onUserDataUnregisted(userData, pesTimeUs);
+      }
+    });
+
   }
 }

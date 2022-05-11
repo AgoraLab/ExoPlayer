@@ -229,6 +229,10 @@
     "name": "HLS",
     "samples": [
       {
+        "name": "Salmon Test",
+        "uri": "https://examplepull.agoramdn.com/live/zzy_test/playlist.m3u8"
+      },
+      {
         "name": "Apple 4x3 basic stream (TS)",
         "uri": "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8"
       },

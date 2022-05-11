@@ -47,6 +47,7 @@ import com.google.android.exoplayer2.upstream.LoadErrorHandlingPolicy;
 import com.google.android.exoplayer2.upstream.TransferListener;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.MimeTypes;
+import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.Util;
 import com.google.common.primitives.Ints;
 import java.io.IOException;
@@ -64,7 +65,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 public final class HlsMediaPeriod
     implements MediaPeriod,
         HlsSampleStreamWrapper.Callback,
-        HlsPlaylistTracker.PlaylistEventListener {
+        HlsPlaylistTracker.PlaylistEventListener{
 
   private final HlsExtractorFactory extractorFactory;
   private final HlsPlaylistTracker playlistTracker;
@@ -148,6 +149,14 @@ public final class HlsMediaPeriod
     sampleStreamWrappers = new HlsSampleStreamWrapper[0];
     enabledSampleStreamWrappers = new HlsSampleStreamWrapper[0];
     manifestUrlIndicesPerWrapper = new int[0][];
+  }
+
+  @Override
+  public void onUserDataUnregisted(ParsableByteArray userData, long pts)
+  {
+    if(null != callback){
+      callback.onUserDataUnregisted(userData, pts);
+    }
   }
 
   public void release() {

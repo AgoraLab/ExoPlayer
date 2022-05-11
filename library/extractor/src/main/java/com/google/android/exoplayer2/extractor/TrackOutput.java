@@ -206,4 +206,9 @@ public interface TrackOutput {
    */
   void sampleMetadata(
       long timeUs, @C.BufferFlags int flags, int size, int offset, @Nullable CryptoData cryptoData);
+
+  /**
+   *
+   */
+  default void userDataNotify(ParsableByteArray data, long pts) { }
 }
