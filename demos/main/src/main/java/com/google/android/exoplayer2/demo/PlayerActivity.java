@@ -53,6 +53,7 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.util.DebugTextViewHelper;
 import com.google.android.exoplayer2.util.ErrorMessageProvider;
 import com.google.android.exoplayer2.util.EventLogger;
+import com.google.android.exoplayer2.util.Log;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.Util;
 import java.util.ArrayList;
@@ -444,6 +445,8 @@ public class PlayerActivity extends AppCompatActivity
 
   private class PlayerEventListener implements Player.Listener {
 
+    private static final String TAG = "PlayerEventListener";
+
     // 播放状态改变
     @Override
     public void onPlaybackStateChanged(@Player.State int playbackState) {
@@ -496,11 +499,13 @@ public class PlayerActivity extends AppCompatActivity
 
     @Override
     public void onUserDataUnregistedAfterExtract(byte[] data, int lenght, long pts){
+      Log.d(TAG,"[salmon]onUserDataUnregistedAfterExtract: " + pts);
       debugViewHelper.setExtractSeiData(data, pts);
     }
 
     @Override
     public void onUserDataUnregistedWhenRender(byte[] data, int lenght, long pts){
+      Log.d(TAG,"[salmon]onUserDataUnregistedWhenRender: " + pts);
       debugViewHelper.setRenderSeiData(data, pts);
     }
   }

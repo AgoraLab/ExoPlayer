@@ -20,6 +20,7 @@ import static com.google.android.exoplayer2.util.Util.castNonNull;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
+import android.nfc.Tag;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -2577,6 +2578,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
   private void updateSeiDataItem(SeiDataItem seiDataItem){
 
+    Log.d(TAG,"[salmon]updateSeiDataItem: " + seiDataItem.getPts());
     if(appendSeiDataItem(seiDataItem) &&
         lastSeiDataItemIsUserDataUnregistedType()){
       playbackInfo = playbackInfo.copyWithSeiDataItem(new PlaybackInfo.SeiDataItemInfo(
@@ -2597,6 +2599,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
       }
 
       seiDataCache.add(seiDataItem);
+      Log.d(TAG,"[salmon]appendSeiDataItem: " + seiDataItem.getPts());
+
+
+
       isAppended = true;
     }
 
@@ -2616,7 +2622,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
         }
 
         seiDataCache.poll();
-
+        Log.d(TAG,"[salmon]tryToDeliverSeiData: " + firstSeiDataItem.getPts());
         playbackInfo = playbackInfo.copyWithSeiDataItem(new PlaybackInfo.SeiDataItemInfo(firstSeiDataItem,
             PlaybackInfo.SeiDataItemInfo.WHEN_RENDER));
       } else {
