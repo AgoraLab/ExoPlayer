@@ -208,7 +208,9 @@ public interface TrackOutput {
       long timeUs, @C.BufferFlags int flags, int size, int offset, @Nullable CryptoData cryptoData);
 
   /**
-   *
+   * Called to pass any data to the output
+   * @param data Any data you want to deliver
+   * @param pts Pts of Pes header
    */
   default void userDataNotify(ParsableByteArray data, long pts) { }
 }

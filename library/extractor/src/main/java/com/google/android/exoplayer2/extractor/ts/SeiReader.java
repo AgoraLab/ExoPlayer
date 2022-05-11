@@ -73,15 +73,20 @@ public final class SeiReader {
     }
   }
 
-
-
   public void consume(long pesTimeUs, ParsableByteArray seiBuffer){
     consume(pesTimeUs, seiBuffer, null);
   }
 
+  /**
+   *  consume the sei payload data, and return user_data_unregisted  by callback
+   * @param pesTimeUs
+   * @param seiBuffer
+   * @param seiDataCallback
+   */
   public void consume(long pesTimeUs, ParsableByteArray seiBuffer, SeiDataCallback seiDataCallback) {
 
     CeaUtil.consume(pesTimeUs, seiBuffer, outputs, (int payloadType, int payloadSize, byte [] data, int position)->{
+
       if(PAYLOAD_TYPE_USER_DATA_UNREGISTERED == payloadType && null != seiDataCallback){
 
         ParsableByteArray userData = new ParsableByteArray(payloadSize);

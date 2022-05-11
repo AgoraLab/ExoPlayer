@@ -304,7 +304,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
   @Override
   public void onUserDataUnregisted(ParsableByteArray data, long pts){
-
     SeiDataItem dataItem = new SeiDataItem(SeiDataItem.SEI_DATA_TYPE_USER_DATA_UNREGISTED, data, pts);
     handler
         .obtainMessage(MSG_USER_DATA_UNREGISTED, dataItem)
@@ -2603,7 +2602,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
     return isAppended;
   }
-
 
   private void tryToDeliverSeiData(long currentTimeUs){
 

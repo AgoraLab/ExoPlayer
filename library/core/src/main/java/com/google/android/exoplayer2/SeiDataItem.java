@@ -2,6 +2,9 @@ package com.google.android.exoplayer2;
 
 import com.google.android.exoplayer2.util.ParsableByteArray;
 
+/**
+ * The SeiDataItem class use to wrap sei data
+ */
 public class SeiDataItem {
 
   public static final int SEI_DATA_TYPE_USER_DATA_UNREGISTED = 5;   // current only support user data unregisted type

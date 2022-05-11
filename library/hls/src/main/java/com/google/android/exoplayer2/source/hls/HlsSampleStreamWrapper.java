@@ -115,11 +115,9 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
      */
     void onPlaylistRefreshRequired(Uri playlistUrl);
 
-
     /**
-     *
+     * Called to deliver user data unregisted of sei
      * @param userData
-     * @param length
      * @param pts
      */
     default void onUserDataUnregisted(ParsableByteArray userData, long pts){}

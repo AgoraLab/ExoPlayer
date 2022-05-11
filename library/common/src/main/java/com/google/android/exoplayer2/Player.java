@@ -1046,8 +1046,20 @@ public interface Player {
      */
     default void onMetadata(Metadata metadata) {}
 
+    /**
+     * Called when user-data-unregisted of sei extract form stream. current only valid for hls
+     * @param data
+     * @param lenght
+     * @param pts
+     */
     default void onUserDataUnregistedAfterExtract(byte[] data, int lenght, long pts){}
 
+    /**
+     * Called when render time is equal to pts of user-data-unregisted. current only valid for hls
+     * @param data
+     * @param lenght
+     * @param pts
+     */
     default void onUserDataUnregistedWhenRender(byte[] data, int lenght, long pts){}
   }
 

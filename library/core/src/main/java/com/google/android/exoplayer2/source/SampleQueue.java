@@ -65,8 +65,16 @@ public class SampleQueue implements TrackOutput {
     void onUpstreamFormatChanged(Format format);
   }
 
-
+  /**
+   * A listener for deliver user data
+   */
   public interface UserDataListener {
+
+    /**
+     * Called on the data delivery from extractor
+     * @param data  The user data
+     * @param pts
+     */
     void onUserData(ParsableByteArray data, long pts);
   }
 
