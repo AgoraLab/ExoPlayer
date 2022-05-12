@@ -84,7 +84,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
   private static final String TAG = "ExoPlayerImplInternal";
 
   private static final int MAX_COUNT_OF_SEI_DATA_ITEM_CACHE = 100;
-  private static final int SEI_VALID_TIME_US = 1 * 1000 * 1000;
 
   public static final class PlaybackInfoUpdate {
 
@@ -2615,12 +2614,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
       SeiDataItem firstSeiDataItem = seiDataCache.peek();
       if(currentTimeUs > firstSeiDataItem.getPts()){
-
-        if(currentTimeUs - firstSeiDataItem.getPts() > SEI_VALID_TIME_US){  // more than 1 second, then discard
-          seiDataCache.poll();
-          continue;
-        }
-
         seiDataCache.poll();
         Log.d(TAG,"[salmon]tryToDeliverSeiData: " + firstSeiDataItem.getPts());
         playbackInfo = playbackInfo.copyWithSeiDataItem(new PlaybackInfo.SeiDataItemInfo(firstSeiDataItem,

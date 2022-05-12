@@ -1183,8 +1183,6 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
       callback.onUserDataUnregisted(data, pts);
     }
 
-    // cache to a queue, return to user when render time
-
   }
 
   // Called by the loading thread.
