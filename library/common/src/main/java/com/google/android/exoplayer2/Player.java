@@ -1319,8 +1319,7 @@ public interface Player {
     EVENT_METADATA,
     EVENT_DEVICE_INFO_CHANGED,
     EVENT_DEVICE_VOLUME_CHANGED,
-    EVENT_USER_DATA_UNREGISTED,
-    EVENT_USER_DATA_UNREGISTED_RENDER
+    EVENT_USER_DATA_UNREGISTED
   })
   @interface Event {}
   /** {@link #getCurrentTimeline()} changed. */
@@ -1393,8 +1392,6 @@ public interface Player {
   int EVENT_DEVICE_VOLUME_CHANGED = 30;
   /** */
   int EVENT_USER_DATA_UNREGISTED = 31;
-
-  int EVENT_USER_DATA_UNREGISTED_RENDER = 32;
 
   /**
    * Commands that can be executed on a {@code Player}. One of {@link #COMMAND_PLAY_PAUSE}, {@link

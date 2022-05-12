@@ -1179,9 +1179,13 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
   @Override
   public void onUserData(ParsableByteArray data, long pts){
 
-    if(null != callback){
-      callback.onUserDataUnregisted(data, pts);
-    }
+    handler.post(()->{
+
+      if(null != callback){
+        callback.onUserDataUnregisted(data, pts);
+      }
+
+    });
 
   }
 
