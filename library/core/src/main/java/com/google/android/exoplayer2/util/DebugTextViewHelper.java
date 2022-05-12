@@ -218,13 +218,11 @@ public class DebugTextViewHelper implements Player.Listener, Runnable {
 
     if (null != extractSeiData){
       String extractSeiContent = new String(extractSeiData);
-      extractSeiContent = extractSeiContent.substring(15);
       seiDataString += "\nextractSeiDataItem ---> content: " + extractSeiContent + " pts:" + Util.usToMs(extractSeiDataPts);
     }
 
     if(null != renderSeiData){
       String renderSeiContent = new String(renderSeiData);
-      renderSeiContent = renderSeiContent.substring(15);
       seiDataString += "\nrenderSeiDataItem  ---> content: " + renderSeiContent + " pts:" + Util.usToMs(renderSeiDataPts);
     }
 

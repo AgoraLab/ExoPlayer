@@ -113,7 +113,7 @@ import java.util.concurrent.TimeoutException;
 
   private static final String TAG = "ExoPlayerImpl";
 
-
+  private static final int SEI_USER_DATA_UUID_LENGTH = 16;
 
   /**
    * This empty track selector result can only be used for {@link PlaybackInfo#trackSelectorResult}
@@ -1848,30 +1848,13 @@ import java.util.concurrent.TimeoutException;
     }
 
     if(null != newPlaybackInfo.seiDataItemInfo &&
-        newPlaybackInfo.seiDataItemInfo != previousPlaybackInfo.seiDataItemInfo
+        newPlaybackInfo.seiDataItemInfo != previousPlaybackInfo.seiDataItemInfo &&
+        (newPlaybackInfo.seiDataItemInfo.seiDataItem.getSeiDataType() ==
+            SeiDataItem.SEI_DATA_TYPE_USER_DATA_UNREGISTED)
         ){
-      SeiDataItem lastSeiDataItem = newPlaybackInfo.seiDataItemInfo.seiDataItem;
 
-      if(PlaybackInfo.SeiDataItemInfo.WHEN_EXTRACT == newPlaybackInfo.seiDataItemInfo.when){
-        byte[] data = lastSeiDataItem.getData().getData();
-        listeners.queueEvent(
-            Player.EVENT_USER_DATA_UNREGISTED,
-            listener -> listener.onUserDataUnregistedAfterExtract(
-                data,
-                data.length,
-                lastSeiDataItem.getPts())
-        );
+      notifyUserDataUnregisted(newPlaybackInfo);
 
-      } else if(PlaybackInfo.SeiDataItemInfo.WHEN_RENDER == newPlaybackInfo.seiDataItemInfo.when){
-        byte[] data = lastSeiDataItem.getData().getData();
-        listeners.queueEvent(
-            Player.EVENT_USER_DATA_UNREGISTED,
-            listener -> listener.onUserDataUnregistedWhenRender(
-                data,
-                data.length,
-                lastSeiDataItem.getPts())
-        );
-      }
     }
 
     if (!previousPlaybackInfo.timeline.equals(newPlaybackInfo.timeline)) {
@@ -1990,6 +1973,51 @@ import java.util.concurrent.TimeoutException;
     }
   }
 
+  private void notifyUserDataUnregisted(PlaybackInfo playbackInfo){
+    SeiDataItem lastSeiDataItem = playbackInfo.seiDataItemInfo.seiDataItem;
+
+    byte[] uuid = getUUIDFromUserDataUnregisted(lastSeiDataItem.getData().getData());
+    byte[] userData = getUserDataFromUserDataUnregisted(lastSeiDataItem.getData().getData());
+
+    if(PlaybackInfo.SeiDataItemInfo.WHEN_EXTRACT == playbackInfo.seiDataItemInfo.when){
+
+      listeners.queueEvent(
+          Player.EVENT_USER_DATA_UNREGISTED,
+          listener -> listener.onUserDataUnregistedAfterExtract(
+              uuid,
+              userData,
+              lastSeiDataItem.getPts())
+      );
+
+    } else if(PlaybackInfo.SeiDataItemInfo.WHEN_RENDER == playbackInfo.seiDataItemInfo.when){
+      listeners.queueEvent(
+          Player.EVENT_USER_DATA_UNREGISTED,
+          listener -> listener.onUserDataUnregistedWhenRender(
+              uuid,
+              userData,
+              lastSeiDataItem.getPts())
+      );
+    }
+  }
+
+  private byte[] getUUIDFromUserDataUnregisted(byte[] data){
+    byte [] uuid = null;
+    if(data.length >= SEI_USER_DATA_UUID_LENGTH){
+      uuid = new byte[SEI_USER_DATA_UUID_LENGTH];
+      System.arraycopy(data, 0, uuid, 0, SEI_USER_DATA_UUID_LENGTH);
+    }
+    return uuid;
+  }
+
+  private byte[] getUserDataFromUserDataUnregisted(byte[] data){
+    byte [] userData = null;
+    if(data.length > SEI_USER_DATA_UUID_LENGTH){
+      int userDataLength = data.length - SEI_USER_DATA_UUID_LENGTH;
+      userData = new byte[userDataLength];
+      System.arraycopy(data, SEI_USER_DATA_UUID_LENGTH, userData, 0, userDataLength);
+    }
+    return userData;
+  }
 
   private PositionInfo getPreviousPositionInfo(
       @DiscontinuityReason int positionDiscontinuityReason,
