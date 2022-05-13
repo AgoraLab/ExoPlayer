@@ -2610,7 +2610,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
   private void tryToDeliverSeiData(long currentTimeUs){
 
-    while(seiDataCache.size() > 0){
+    if(seiDataCache.size() > 0){
 
       SeiDataItem firstSeiDataItem = seiDataCache.peek();
       if(currentTimeUs > firstSeiDataItem.getPts()){
@@ -2618,9 +2618,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
         Log.d(TAG,"[salmon]tryToDeliverSeiData: " + firstSeiDataItem.getPts());
         playbackInfo = playbackInfo.copyWithSeiDataItem(new PlaybackInfo.SeiDataItemInfo(firstSeiDataItem,
             PlaybackInfo.SeiDataItemInfo.WHEN_RENDER));
-      } else {
-        break;
       }
+
     }
   }
 
