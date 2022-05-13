@@ -2576,8 +2576,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 
   private void updateSeiDataItem(SeiDataItem seiDataItem){
-
-    Log.d(TAG,"[salmon]updateSeiDataItem: " + seiDataItem.getPts());
     if(appendSeiDataItem(seiDataItem) &&
         lastSeiDataItemIsUserDataUnregistedType()){
       playbackInfo = playbackInfo.copyWithSeiDataItem(new PlaybackInfo.SeiDataItemInfo(
@@ -2598,10 +2596,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
       }
 
       seiDataCache.add(seiDataItem);
-      Log.d(TAG,"[salmon]appendSeiDataItem: " + seiDataItem.getPts());
-
-
-
       isAppended = true;
     }
 
@@ -2615,7 +2609,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
       SeiDataItem firstSeiDataItem = seiDataCache.peek();
       if(currentTimeUs > firstSeiDataItem.getPts()){
         seiDataCache.poll();
-        Log.d(TAG,"[salmon]tryToDeliverSeiData: " + firstSeiDataItem.getPts());
         playbackInfo = playbackInfo.copyWithSeiDataItem(new PlaybackInfo.SeiDataItemInfo(firstSeiDataItem,
             PlaybackInfo.SeiDataItemInfo.WHEN_RENDER));
       }

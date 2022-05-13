@@ -494,13 +494,13 @@ public class PlayerActivity extends AppCompatActivity
 
     @Override
     public void onUserDataUnregistedAfterExtract(byte[] uuid, byte[] data, long pts){
-      Log.d(TAG,"[salmon]onUserDataUnregistedAfterExtract: " + pts);
+      Log.d(TAG,"onUserDataUnregistedAfterExtract: " + pts + " data: " + new String(data));
       debugViewHelper.setExtractSeiData(data, pts);
     }
 
     @Override
     public void onUserDataUnregistedWhenRender(byte[] uuid, byte[] data, long pts){
-      Log.d(TAG,"[salmon]onUserDataUnregistedWhenRender: " + pts);
+      Log.d(TAG,"onUserDataUnregistedWhenRender: " + pts + " data: " + new String(data));
       debugViewHelper.setRenderSeiData(data, pts);
     }
   }
