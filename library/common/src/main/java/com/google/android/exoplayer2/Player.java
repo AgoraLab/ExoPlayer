@@ -1048,17 +1048,17 @@ public interface Player {
 
     /**
      * Called when user-data-unregisted of sei extract form stream. current only valid for hls
-     * @param uuid
-     * @param data
-     * @param pts
+     * @param uuid  uuid in the user-data-unregisted content
+     * @param data  payload data in the user-data-unregisted content
+     * @param pts   presentation time stamp extract from pes header of hls
      */
     default void onUserDataUnregistedAfterExtract(byte[] uuid, byte[] data, long pts){}
 
     /**
      * Called when render time is equal to pts of user-data-unregisted. current only valid for hls
-     * @param uuid
-     * @param data
-     * @param pts
+     * @param uuid  uuid in the user-data-unregisted content
+     * @param data  payload data in the user-data-unregisted content
+     * @param pts   presentation time stamp extract from pes header of hls
      */
     default void onUserDataUnregistedWhenRender(byte[] uuid, byte[] data, long pts){}
   }

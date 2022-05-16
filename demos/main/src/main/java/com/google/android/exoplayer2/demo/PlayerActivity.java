@@ -280,7 +280,7 @@ public class PlayerActivity extends AppCompatActivity
 
       trackSelector = new DefaultTrackSelector(/* context= */ this);
       lastSeenTracksInfo = TracksInfo.EMPTY;
-      
+
       player =
           new ExoPlayer.Builder(/* context= */ this)
               .setRenderersFactory(renderersFactory)
