@@ -15,7 +15,7 @@ Before launch the demo to testing, you can modify this uri field to your stream 
 ![](./images/demo-setup.png)
 
 
-After demo launched, you will see the "extractSeiDataItem" or "renderSeiDataItem" contents if user-data-unregisted data has been extracted. As is shown below.
+After demo launched, click the HLS/Agora Test item. you will see the "extractSeiDataItem" or "renderSeiDataItem" contents if user-data-unregisted data has been extracted. As is shown below.
 
 ![](./images/demo.jpg)
 
