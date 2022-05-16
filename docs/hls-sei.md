@@ -35,7 +35,7 @@ player =
 player.addListener(new PlayerEventListener());
 ```
 
-![](./images/gradle-jdk-version.png)
+![](./images/sei-interface.png)
 
 In the PlayerEventListener class, this two interface above retrun the user-data-unregisted data.
 
@@ -86,8 +86,8 @@ Algorithm HmacPBESHA256 not available
 settion option:
 
 you need to choose 16/18 version as option
-![](./images/sei-interface.png)
 
+![](./images/gradle-jdk-version.png)
 
 
 
