@@ -8,6 +8,17 @@ Based on Google's official ExoPlayer project, we added a callback interface for 
 >github： https://github.com/AgoraLab/ExoPlayer.git
 >branch：release-v2 
 
+## Launch demo
+
+Before launch the demo to testing, you can modify this uri field to your stream source address.
+
+![](./images/demo-setup.png)
+
+
+After demo launched, you will see the "extractSeiDataItem" or "renderSeiDataItem" contents if user-data-unregisted data has been extracted. As is shown below.
+
+![](./images/demo.jpg)
+
 ## Use case 
 
 In order to get the user-data-unregisted data, you can implement the interface of 'Player.Listener', and registe to player object.
