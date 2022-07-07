@@ -28,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import com.agora.stats.CustomerConfigData;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
@@ -52,11 +53,13 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.util.DebugTextViewHelper;
 import com.google.android.exoplayer2.util.ErrorMessageProvider;
 import com.google.android.exoplayer2.util.EventLogger;
+import com.google.android.exoplayer2.util.Log;
 import com.google.android.exoplayer2.util.Util;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import com.agora.stats.ExoPlayerAgoraStats;
 
 /** An activity that plays media using {@link ExoPlayer}. */
 public class PlayerActivity extends AppCompatActivity
@@ -93,6 +96,9 @@ public class PlayerActivity extends AppCompatActivity
   @Nullable private ImaServerSideAdInsertionMediaSource.AdsLoader serverSideAdsLoader;
   private ImaServerSideAdInsertionMediaSource.AdsLoader.@MonotonicNonNull State
       serverSideAdsLoaderState;
+
+  // agora stats sdk
+  private ExoPlayerAgoraStats exoPlayerAgoraStats;
 
   // Activity lifecycle.
 
@@ -292,6 +298,22 @@ public class PlayerActivity extends AppCompatActivity
       serverSideAdsLoader.setPlayer(player);
       debugViewHelper = new DebugTextViewHelper(player, debugTextView);
       debugViewHelper.start();
+
+
+      ExoPlayerAgoraStats.setLogCallback((String type, String tag, String message)->{
+        if("debug" == type){
+          Log.d(tag, message);
+        }
+        else if("error" == type){
+          Log.e(tag, message);
+        }
+      });
+      CustomerConfigData customerConfigData = new CustomerConfigData();
+      customerConfigData.setVid(10086);
+      customerConfigData.setToken("");
+      customerConfigData.setEnvironmentToken("");
+      exoPlayerAgoraStats = new ExoPlayerAgoraStats(player, "exoplayer_1", customerConfigData);
+
     }
     boolean haveStartPosition = startItemIndex != C.INDEX_UNSET;
     if (haveStartPosition) {
@@ -369,6 +391,12 @@ public class PlayerActivity extends AppCompatActivity
   }
 
   protected void releasePlayer() {
+
+    if(null != exoPlayerAgoraStats){
+      exoPlayerAgoraStats.release();
+      exoPlayerAgoraStats = null;
+    }
+
     if (player != null) {
       updateTrackSelectorParameters();
       updateStartPosition();
@@ -378,6 +406,7 @@ public class PlayerActivity extends AppCompatActivity
       debugViewHelper = null;
       player.release();
       player = null;
+
       playerView.setPlayer(/* player= */ null);
       mediaItems = Collections.emptyList();
     }
