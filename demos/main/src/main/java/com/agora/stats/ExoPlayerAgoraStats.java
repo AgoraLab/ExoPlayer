@@ -231,17 +231,17 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
           this.playUrl != hlsManifest.mediaPlaylist.baseUri){
 
         if(null != this.playUrl && !this.playUrl.isEmpty()){
-          // url, streamId field of StreamSwitchEvent use old value
+          // streamId field of StreamSwitchEvent use old value
           StreamSwitchEvent streamSwitchEvent = new StreamSwitchEvent();
-          streamSwitchEvent.setUrl(this.playUrl);
           streamSwitchEvent.setStreamId(this.streamId);
           streamSwitchEvent.setNewStreamId(Utils.MD5(hlsManifest.mediaPlaylist.baseUri));
+          streamSwitchEvent.setUrl(hlsManifest.mediaPlaylist.baseUri);
           this.handle(streamSwitchEvent);
         }
-
-        this.playUrl = hlsManifest.mediaPlaylist.baseUri;
-        this.streamId = Utils.MD5(this.playUrl);
       }
+
+      this.playUrl = hlsManifest.mediaPlaylist.baseUri;
+      this.streamId = Utils.MD5(this.playUrl);
 
       Logger.d(TAG, "onTimelineChanged, mediaPlaylist.baseUri:" + hlsManifest.mediaPlaylist.baseUri);
     }
@@ -263,7 +263,6 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
 
   @Override
   public void onTracksInfoChanged(EventTime eventTime, TracksInfo tracksInfo) {
-    // 处理流切换
     Logger.d(TAG, "onTracksInfoChanged");
   }
 
@@ -318,9 +317,10 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
 
   @Override
   public void onDrmSessionManagerError(AnalyticsListener.EventTime eventTime, Exception e) {
-//    internalError(new MuxErrorException(ERROR_DRM, "DrmSessionManagerError - " + e.getMessage()));
-    // 这里需要处理错误
     Logger.d(TAG, "onDrmSessionManagerError： " + e.getMessage());
+    ErrorEvent errorEvent = new ErrorEvent();
+    errorEvent.setErrorMsg(e.getMessage());
+    this.handle(errorEvent);
   }
 
   @Override
