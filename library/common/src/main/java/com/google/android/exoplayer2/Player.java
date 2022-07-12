@@ -1063,7 +1063,7 @@ public interface Player {
     default void onUserDataUnregistedWhenRender(byte[] uuid, byte[] data, long pts){}
 
     /**
-     * Called when render time is equal to pts of agora-defined-data. current only valid for hls
+     * Called when agora-defined-data of sei extract form stream. current only valid for hls
      * @param data payload data in the agora-defined-data type content of sei
      * @param pts presentation time stamp extract from pes header of hls
      */
