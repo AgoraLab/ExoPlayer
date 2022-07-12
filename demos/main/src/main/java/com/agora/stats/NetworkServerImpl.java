@@ -127,7 +127,7 @@ public class NetworkServerImpl implements INetworkServer {
           outputStream.close();
         }
 
-        int responseCode = conn.getResponseCode();
+        Logger.d(TAG, "network response code: " + conn.getResponseCode());
         stream = conn.getInputStream();
 
       } catch (Exception e) {

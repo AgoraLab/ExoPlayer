@@ -30,7 +30,7 @@ public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStat
   private CustomerConfigData customerConfigData;
   protected WeakReference<ExoPlayer> player;
 
-  protected PlayerState state;    // 统计模块定义的状态
+  protected PlayerState state;
   protected long firstBufferingTimestamp = 0;
   protected long firstPlayTimestamp = 0;
 
@@ -89,7 +89,6 @@ public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStat
   }
 
   /*********************** implement of EventStatusTracker.Callback ***********************/
-  // 处理 eventStatusTracker 输出的事件，直接发送出去
   @Override
   public void onEventOutput(final IEvent event){
 
@@ -158,12 +157,15 @@ public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStat
     }
     state = PlayerState.PAUSED;
 
-    if(0 == firstPlayTimestamp){
-      firstPlayTimestamp = System.currentTimeMillis();
+    PauseEvent pauseEvent = new PauseEvent();
+
+    if(null != this.player.get()){
+      pauseEvent.setPos(this.player.get().getCurrentPosition());
+    }
+    else {
+      Logger.d(TAG, "player is null");
     }
 
-    PauseEvent pauseEvent = new PauseEvent();
-    pauseEvent.setPos(this.player.get().getCurrentPosition());
     this.handle(pauseEvent);
   }
 
@@ -176,6 +178,10 @@ public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStat
       return;
     }
     state = PlayerState.PLAY;
+
+    if(0 == firstPlayTimestamp){
+      firstPlayTimestamp = System.currentTimeMillis();
+    }
 
     PlayEvent playEvent = new PlayEvent();
     playEvent.setProtocol("hls");

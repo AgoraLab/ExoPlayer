@@ -53,10 +53,11 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
 
   public void release(){
 
-    player.get().removeAnalyticsListener(this);
+    if(null != player && null != player.get()){
+      player.get().removeAnalyticsListener(this);
+    }
 
     this.handle(new DestroyEvent());
-
 
     super.release();
   }
@@ -145,14 +146,12 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
 
   @Override
   public void onPlaybackStateChanged(EventTime eventTime, @Player.State int state) {
-    // 播放状态改变了
     Logger.d(TAG, "onPlaybackStateChanged： " + state);
     onPlaybackStateChanged(state);
   }
 
   public void onPlaybackStateChanged(int playbackState){
 
-    boolean playWhenReady = player.get().getPlayWhenReady();
     PlayerState state = this.state;
 
     switch (playbackState) {
@@ -186,7 +185,7 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
 
   @Override
   public void onPlayerError(AnalyticsListener.EventTime eventTime, PlaybackException error) {
-    // 在这里处理所有的错误事件
+    Logger.d(TAG, "onPlayerError: " + error.getMessage());
 
     ErrorEvent errorEvent = new ErrorEvent();
     errorEvent.setErrorMsg(error.getMessage());
@@ -196,9 +195,7 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
   @Override
   public void onPlayWhenReadyChanged(AnalyticsListener.EventTime eventTime, boolean playWhenReady,
       int reason) {
-    // 是否在ready的时候自动播放，设置改变的时候会回调到这里
-//    onPlayWhenReadyChanged(playWhenReady, reason);
-//    onPlaybackStateChanged(player.get().getPlaybackState());
+    Logger.d(TAG, "onPlayWhenReadyChanged: " + reason);
   }
 
 
@@ -208,7 +205,8 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
       Player.PositionInfo oldPosition,
       Player.PositionInfo newPosition,
       @Player.DiscontinuityReason int reason) {
-    // seeking 和 seeked 状态都在这里处理
+    Logger.d(TAG, "onPositionDiscontinuity: " + reason);
+
     if(Player.DISCONTINUITY_REASON_SEEK == reason){
       Logger.d(TAG, "onPositionDiscontinuity, old pos: " + oldPosition.positionMs + " new pos:" + newPosition.positionMs);
       seeking(oldPosition.positionMs, newPosition.positionMs);
@@ -217,13 +215,18 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
   }
 
 
-
   @Override
   public void onTimelineChanged(AnalyticsListener.EventTime eventTime,@Player.TimelineChangeReason int reason) {
-    // dont need process
     Logger.d(TAG, "onTimelineChanged: " + reason);
-    Object object = this.player.get().getCurrentManifest();
+
+    Object object = null;
+
+    if(null != player && null != player.get()){
+      object= this.player.get().getCurrentManifest();
+    }
+
     if(null != object && HlsManifest.class.isInstance(object)){
+
       HlsManifest hlsManifest = HlsManifest.class.cast(object);
 
       if(null != hlsManifest.mediaPlaylist.baseUri &&
@@ -245,6 +248,7 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
 
       Logger.d(TAG, "onTimelineChanged, mediaPlaylist.baseUri:" + hlsManifest.mediaPlaylist.baseUri);
     }
+
   }
 
 
@@ -269,6 +273,7 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
 
   @Override
   public void onRenderedFirstFrame(EventTime eventTime, Object output, long renderTimeMs) {
+    Logger.d(TAG, "onRenderedFirstFrame");
     FirstframerenderedEvent firstframerenderedEvent = new FirstframerenderedEvent();
     firstframerenderedEvent.setCostTime(System.currentTimeMillis() - firstBufferingTimestamp);
     this.handle(firstframerenderedEvent);
@@ -278,41 +283,41 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
   @Override
   public void onAudioAttributesChanged(AnalyticsListener.EventTime eventTime,
       AudioAttributes audioAttributes) {
-    // dont need process
+    Logger.d(TAG, "onAudioAttributesChanged");
   }
 
   @Override
   public void onAudioUnderrun(AnalyticsListener.EventTime eventTime, int bufferSize,
       long bufferSizeMs, long elapsedSinceLastFeedMs) {
-    // dont need process
+    Logger.d(TAG, "onAudioUnderrun");
   }
 
   @Override
   public void onVideoInputFormatChanged(EventTime eventTime,
       Format format,
       @Nullable DecoderReuseEvaluation decoderReuseEvaluation) {
-    // dont need process
+    Logger.d(TAG, "onVideoInputFormatChanged");
   }
 
   @Override
   public void onDownstreamFormatChanged(AnalyticsListener.EventTime eventTime,
       MediaLoadData mediaLoadData) {
-    // dont need process
+    Logger.d(TAG, "onDownstreamFormatChanged");
   }
 
   @Override
   public void onDrmKeysLoaded(AnalyticsListener.EventTime eventTime) {
-    // dont need process
+    Logger.d(TAG, "onDrmKeysLoaded");
   }
 
   @Override
   public void onDrmKeysRemoved(AnalyticsListener.EventTime eventTime) {
-    // dont need process
+    Logger.d(TAG, "onDrmKeysRemoved");
   }
 
   @Override
   public void onDrmKeysRestored(AnalyticsListener.EventTime eventTime) {
-    // dont need process
+    Logger.d(TAG, "onDrmKeysRestored");
   }
 
   @Override
@@ -325,48 +330,46 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
 
   @Override
   public void onMetadata(AnalyticsListener.EventTime eventTime, Metadata metadata) {
-    // dont need process
     Logger.d(TAG, "onMetadata： " + metadata.toString());
   }
 
   @Override
   public void onPlaybackParametersChanged(AnalyticsListener.EventTime eventTime,
       PlaybackParameters playbackParameters) {
-    // dont need process
+    Logger.d(TAG, "onPlaybackParametersChanged");
   }
 
   @Override
   public void onTrackSelectionParametersChanged(
       EventTime eventTime, TrackSelectionParameters trackSelectionParameters) {
     Logger.d(TAG, "onTrackSelectionParametersChanged");
-    // dont need process
   }
 
   @Override
   public void onUpstreamDiscarded(EventTime eventTime, MediaLoadData mediaLoadData) {
-    // dont need process
+    Logger.d(TAG, "onUpstreamDiscarded");
   }
 
   @Override
   public void onVideoSizeChanged(EventTime eventTime, VideoSize videoSize) {
-    // dont need process
+    Logger.d(TAG, "onVideoSizeChanged");
   }
 
   @Override
   public void onVolumeChanged(AnalyticsListener.EventTime eventTime, float volume) {
-    // dont need process
+    Logger.d(TAG, "onVolumeChanged");
   }
 
   @Override
   public void onShuffleModeChanged(AnalyticsListener.EventTime eventTime,
       boolean shuffleModeEnabled) {
-    // dont need process
+    Logger.d(TAG, "onShuffleModeChanged");
   }
 
   @Override
   public void onSurfaceSizeChanged(AnalyticsListener.EventTime eventTime, int width,
       int height) {
-    // dont need process
+    Logger.d(TAG, "onSurfaceSizeChanged");
   }
 
 

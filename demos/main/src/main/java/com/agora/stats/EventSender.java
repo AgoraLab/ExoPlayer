@@ -99,26 +99,22 @@ public class EventSender implements IEventProcessor, INetworkServer.INetworkRequ
 
     if(null != this.executorService && !this.executorService.isShutdown()) {
 
-      Runnable releaseRunnable = new Runnable() {
-        @Override
-        public void run() {
-          if (null != executorService) {
-            executorService.shutdown();
-            executorService = null;
-          }
-
-          if (null != scheduledService) {
-            scheduledService.shutdown();
-            scheduledService = null;
-          }
-          if (null != networkServer) {
-            networkServer.shutdown();
-            networkServer = null;
-          }
+      this.executorService.execute(()->{
+        if (null != executorService) {
+          executorService.shutdown();
+          executorService = null;
         }
-      };
 
-      this.executorService.execute(releaseRunnable);
+        if (null != scheduledService) {
+          scheduledService.shutdown();
+          scheduledService = null;
+        }
+        if (null != networkServer) {
+          networkServer.shutdown();
+          networkServer = null;
+        }
+      });
+//      this.executorService.execute(releaseRunnable);
     }
   }
 
@@ -126,19 +122,13 @@ public class EventSender implements IEventProcessor, INetworkServer.INetworkRequ
   @Override
   public void asyncHandle(final IEvent event) {
 
-
     if(null != this.executorService && !this.executorService.isShutdown()){
 
-      Runnable asyncRunable = new Runnable() {
-        @Override
-        public void run() {
-          ElapseTimer elapseTimer = new ElapseTimer("async-process-event");
-          handle(event);
-          elapseTimer.close();
-        }
-      };
-
-      this.executorService.execute(asyncRunable);
+      this.executorService.execute(() -> {
+        ElapseTimer elapseTimer = new ElapseTimer("async-process-event");
+        handle(event);
+        elapseTimer.close();
+      });
     }
     else {
       Logger.d(TAG, "executorService maybe shutdown: " + this.executorService);
