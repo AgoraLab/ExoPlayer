@@ -37,7 +37,7 @@ player.addListener(new PlayerEventListener());
 
 ![](./images/sei-interface.png)
 
-In the PlayerEventListener class, this two interface above retrun the user-data-unregisted data.
+In the PlayerEventListener class, the two interface ahead above retrun the user-data-unregisted data. the last two interface return the agora sei type data.
 
 ## Description of interface
 
@@ -48,27 +48,35 @@ public interface Player {
 
     interface Listener {
 
-        /**
-        * Called when user-data-unregisted of sei extract form stream. current only valid for hls
-        * @param uuid   uuid in the user-data-unregisted content
-        * @param data   payload data in the user-data-unregisted content
-        * @param pts    presentation time stamp extract from pes header of hls 
-        */
-        default void onUserDataUnregistedAfterExtract(
-            byte[] uuid, 
-            byte[] data,
-            long pts){}
+           /**
+     * Called when user-data-unregisted of sei extract form stream. current only valid for hls
+     * @param uuid  uuid in the user-data-unregisted content
+     * @param data  payload data in the user-data-unregisted type content of sei
+     * @param pts   presentation time stamp extract from pes header of hls
+     */
+    default void onUserDataUnregistedAfterExtract(byte[] uuid, byte[] data, long pts){}
 
-        /**
-        * Called when render time is equal to pts of user-data-unregisted. current only valid for hls
-        * @param uuid   uuid in the user-data-unregisted content
-        * @param data   payload data in the user-data-unregisted content
-        * @param pts    presentation time stamp extract from pes header of hls 
-        */
-        default void onUserDataUnregistedWhenRender(
-            byte[] uuid, 
-            byte[] data, 
-            long pts){}
+    /**
+     * Called when render time is equal to pts of user-data-unregisted. current only valid for hls
+     * @param uuid  uuid in the user-data-unregisted content
+     * @param data  payload data in the user-data-unregisted type content of sei
+     * @param pts   presentation time stamp extract from pes header of hls
+     */
+    default void onUserDataUnregistedWhenRender(byte[] uuid, byte[] data, long pts){}
+
+    /**
+     * Called when agora-defined-data of sei extract form stream. current only valid for hls
+     * @param data payload data in the agora-defined-data type content of sei
+     * @param pts presentation time stamp extract from pes header of hls
+     */
+    default void onAgoraDefinedDataAfterExtract(byte[] data, long pts){}
+
+    /**
+     * Called when render time is equal to pts of agora-defined-data. current only valid for hls
+     * @param data  payload data in the agora-defined-data type content of sei
+     * @param pts presentation time stamp extract from pes header of hls
+     */
+    default void onAgoraDefinedDataWhenRender(byte[] data, long pts){}
     }
 }
 ```
