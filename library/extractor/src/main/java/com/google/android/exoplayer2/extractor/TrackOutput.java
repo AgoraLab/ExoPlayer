@@ -207,10 +207,12 @@ public interface TrackOutput {
   void sampleMetadata(
       long timeUs, @C.BufferFlags int flags, int size, int offset, @Nullable CryptoData cryptoData);
 
+
   /**
-   * Called to pass any data to the output
-   * @param data Any data you want to deliver
+   * Called to pass sei data to the output
+   * @param type The sei data type
+   * @param data The sei data
    * @param pts Pts of Pes header
    */
-  default void userDataNotify(ParsableByteArray data, long pts) { }
+  default void seiDataNotify(int type, ParsableByteArray data, long pts) { }
 }

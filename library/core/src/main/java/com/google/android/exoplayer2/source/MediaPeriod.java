@@ -54,11 +54,12 @@ public interface MediaPeriod extends SequenceableLoader {
     void onPrepared(MediaPeriod mediaPeriod);
 
     /**
-     * Called to deliver user data unregisted of sei
+     * Called to deliver sei data
+     * @param type
      * @param userData
      * @param pts
      */
-    default void onUserDataUnregisted(ParsableByteArray userData, long pts){}
+    default void onSeiDataNotify(int type, ParsableByteArray userData, long pts){}
   }
 
   /**

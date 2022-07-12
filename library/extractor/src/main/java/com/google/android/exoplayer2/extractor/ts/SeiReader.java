@@ -34,13 +34,14 @@ public final class SeiReader {
   private static final String TAG = "SeiReader";
 
   private static final int PAYLOAD_TYPE_USER_DATA_UNREGISTERED = 5;
+  private static final int PAYLOAD_TYPE_AGORA_DEFINED_DATA = 100;
 
   private final List<Format> closedCaptionFormats;
   private final TrackOutput[] outputs;
 
 
   public interface SeiDataCallback {
-    public void onUserDataUnregisted(ParsableByteArray userData, long pts);
+    public void onSeiDataNotify(int type, ParsableByteArray userData, long pts);
   }
 
   /** @param closedCaptionFormats A list of formats for the closed caption channels to expose. */
@@ -78,7 +79,7 @@ public final class SeiReader {
   }
 
   /**
-   *  consume the sei payload data, and return user_data_unregisted  by callback
+   *  consume the sei payload data, and return user_data_unregisted/agora_defined_data by callback
    * @param pesTimeUs
    * @param seiBuffer
    * @param seiDataCallback
@@ -87,12 +88,13 @@ public final class SeiReader {
 
     CeaUtil.consume(pesTimeUs, seiBuffer, outputs, (int payloadType, int payloadSize, byte [] data, int position)->{
 
-      if(PAYLOAD_TYPE_USER_DATA_UNREGISTERED == payloadType && null != seiDataCallback){
+      if(null != seiDataCallback && (PAYLOAD_TYPE_USER_DATA_UNREGISTERED == payloadType ||
+          PAYLOAD_TYPE_AGORA_DEFINED_DATA == payloadType)){
 
-        ParsableByteArray userData = new ParsableByteArray(payloadSize);
-        System.arraycopy(data, position, userData.getData(), 0, payloadSize);
+        ParsableByteArray seiData = new ParsableByteArray(payloadSize);
+        System.arraycopy(data, position, seiData.getData(), 0, payloadSize);
 
-        seiDataCallback.onUserDataUnregisted(userData, pesTimeUs);
+        seiDataCallback.onSeiDataNotify(payloadType, seiData, pesTimeUs);
       }
     });
 

@@ -20,7 +20,6 @@ import static com.google.android.exoplayer2.util.Util.castNonNull;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
-import android.nfc.Tag;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -162,7 +161,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
   private static final int MSG_SET_PAUSE_AT_END_OF_WINDOW = 23;
   private static final int MSG_SET_OFFLOAD_SCHEDULING_ENABLED = 24;
   private static final int MSG_ATTEMPT_RENDERER_ERROR_RECOVERY = 25;
-  private static final int MSG_USER_DATA_UNREGISTED = 30;
+  private static final int MSG_SEI_DATA = 30;
 
   private static final int ACTIVE_INTERVAL_MS = 10;
   private static final int IDLE_INTERVAL_MS = 1000;
@@ -303,10 +302,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
   }
 
   @Override
-  public void onUserDataUnregisted(ParsableByteArray data, long pts){
-    SeiDataItem dataItem = new SeiDataItem(SeiDataItem.SEI_DATA_TYPE_USER_DATA_UNREGISTED, data, pts);
+  public void onSeiDataNotify(int type, ParsableByteArray data, long pts){
+    SeiDataItem dataItem = new SeiDataItem(type, data, pts);
     handler
-        .obtainMessage(MSG_USER_DATA_UNREGISTED, dataItem)
+        .obtainMessage(MSG_SEI_DATA, dataItem)
         .sendToTarget();
   }
 
@@ -580,7 +579,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
         case MSG_ATTEMPT_RENDERER_ERROR_RECOVERY:
           attemptRendererErrorRecovery();
           break;
-        case MSG_USER_DATA_UNREGISTED:
+        case MSG_SEI_DATA:
           updateSeiDataItem((SeiDataItem)msg.obj);
           break;
         case MSG_RELEASE:
@@ -2577,7 +2576,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
   private void updateSeiDataItem(SeiDataItem seiDataItem){
     if(appendSeiDataItem(seiDataItem) &&
-        lastSeiDataItemIsUserDataUnregistedType()){
+        needUpdatePlaybackInfo()){
       playbackInfo = playbackInfo.copyWithSeiDataItem(new PlaybackInfo.SeiDataItemInfo(
           seiDataItem,
           PlaybackInfo.SeiDataItemInfo.WHEN_EXTRACT));
@@ -2616,10 +2615,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
     }
   }
 
-  private boolean lastSeiDataItemIsUserDataUnregistedType(){
+  private boolean needUpdatePlaybackInfo(){
     SeiDataItem lastSeiDataItem = seiDataCache.peekLast();
     if(null != lastSeiDataItem) {
-      return lastSeiDataItem.getSeiDataType() == SeiDataItem.SEI_DATA_TYPE_USER_DATA_UNREGISTED;
+      return lastSeiDataItem.getSeiDataType() == SeiDataItem.SEI_DATA_TYPE_USER_DATA_UNREGISTED ||
+          lastSeiDataItem.getSeiDataType() == SeiDataItem.SEI_DATA_TYPE_AGORA_DEFINED_DATA;
     }
     return false;
   }

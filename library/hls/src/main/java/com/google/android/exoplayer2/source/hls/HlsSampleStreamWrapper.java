@@ -49,7 +49,7 @@ import com.google.android.exoplayer2.source.MediaLoadData;
 import com.google.android.exoplayer2.source.MediaSourceEventListener;
 import com.google.android.exoplayer2.source.SampleQueue;
 import com.google.android.exoplayer2.source.SampleQueue.UpstreamFormatChangedListener;
-import com.google.android.exoplayer2.source.SampleQueue.UserDataListener;
+import com.google.android.exoplayer2.source.SampleQueue.SeiDataListener;
 import com.google.android.exoplayer2.source.SampleStream;
 import com.google.android.exoplayer2.source.SampleStream.ReadFlags;
 import com.google.android.exoplayer2.source.SequenceableLoader;
@@ -96,7 +96,7 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
         SequenceableLoader,
         ExtractorOutput,
         UpstreamFormatChangedListener ,
-        UserDataListener {
+    SeiDataListener {
 
   /** A callback to be notified of events. */
   public interface Callback extends SequenceableLoader.Callback<HlsSampleStreamWrapper> {
@@ -116,11 +116,12 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
     void onPlaylistRefreshRequired(Uri playlistUrl);
 
     /**
-     * Called to deliver user data unregisted of sei
+     * Called to deliver sei data
+     * @param type
      * @param userData
      * @param pts
      */
-    default void onUserDataUnregisted(ParsableByteArray userData, long pts){}
+    default void onSeiDataNotify(int type, ParsableByteArray userData, long pts){}
   }
 
   private static final String TAG = "HlsSampleStreamWrapper";
@@ -1177,12 +1178,12 @@ import org.checkerframework.checker.nullness.qual.RequiresNonNull;
   }
 
   @Override
-  public void onUserData(ParsableByteArray data, long pts){
+  public void onSeiDataNotify(int type, ParsableByteArray data, long pts){
 
     handler.post(()->{
 
       if(null != callback){
-        callback.onUserDataUnregisted(data, pts);
+        callback.onSeiDataNotify(type, data, pts);
       }
 
     });

@@ -80,9 +80,9 @@ public final class MaskingMediaPeriod implements MediaPeriod, MediaPeriod.Callba
   }
 
   @Override
-  public void onUserDataUnregisted(ParsableByteArray data, long pts){
+  public void onSeiDataNotify(int type, ParsableByteArray data, long pts){
     if(null != callback){
-      callback.onUserDataUnregisted(data, pts);
+      callback.onSeiDataNotify(type, data, pts);
     }
   }
 

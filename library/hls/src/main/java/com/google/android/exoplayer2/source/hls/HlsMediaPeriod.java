@@ -152,10 +152,10 @@ public final class HlsMediaPeriod
   }
 
   @Override
-  public void onUserDataUnregisted(ParsableByteArray userData, long pts)
+  public void onSeiDataNotify(int type, ParsableByteArray userData, long pts)
   {
     if(null != callback){
-      callback.onUserDataUnregisted(userData, pts);
+      callback.onSeiDataNotify(type, userData, pts);
     }
   }
 

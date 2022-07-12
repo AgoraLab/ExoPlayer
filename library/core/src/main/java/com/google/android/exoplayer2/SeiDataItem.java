@@ -7,7 +7,13 @@ import com.google.android.exoplayer2.util.ParsableByteArray;
  */
 public class SeiDataItem {
 
-  public static final int SEI_DATA_TYPE_USER_DATA_UNREGISTED = 5;   // current only support user data unregisted type
+  public static final int SEI_DATA_TYPE_USER_DATA_UNREGISTED = 5;
+  public static final int SEI_DATA_TYPE_AGORA_DEFINED_DATA = 100;
+
+  private int seiDataType;
+  private ParsableByteArray data;
+  private long pts;
+
 
   public SeiDataItem(
       int seiDataType,
@@ -23,7 +29,5 @@ public class SeiDataItem {
   public ParsableByteArray getData() {return data;}
   public long getPts() {return pts;}
 
-  private int seiDataType;
-  private ParsableByteArray data;
-  private long pts;
+
 }

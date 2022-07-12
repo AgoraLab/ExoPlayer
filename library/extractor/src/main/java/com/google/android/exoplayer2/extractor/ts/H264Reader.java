@@ -241,8 +241,8 @@ public final class H264Reader implements ElementaryStreamReader {
       int unescapedLength = NalUnitUtil.unescapeStream(sei.nalData, sei.nalLength);
       seiWrapper.reset(sei.nalData, unescapedLength);
       seiWrapper.setPosition(4); // NAL prefix and nal_unit() header.
-      seiReader.consume(pesTimeUs, seiWrapper, (ParsableByteArray userData, long pts) -> {
-        output.userDataNotify(userData, pesTimeUs);
+      seiReader.consume(pesTimeUs, seiWrapper, (int type, ParsableByteArray userData, long pts) -> {
+        output.seiDataNotify(type, userData, pesTimeUs);
       });
     }
     boolean sampleIsKeyFrame =

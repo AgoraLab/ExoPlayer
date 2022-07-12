@@ -502,6 +502,17 @@ public class PlayerActivity extends AppCompatActivity
       Log.d(TAG,"onUserDataUnregistedWhenRender: " + pts + " data: " + new String(data));
       debugViewHelper.setRenderSeiData(data, pts);
     }
+
+    @Override
+    public void onAgoraDefinedDataAfterExtract(byte[] data, long pts){
+      Log.d(TAG,"onAgoraDefinedDataAfterExtract: " + pts + " data: " + new String(data));
+    }
+
+    @Override
+    public void onAgoraDefinedDataWhenRender(byte[] data, long pts){
+      Log.d(TAG,"onAgoraDefinedDataWhenRender: " + pts + " data: " + new String(data));
+    }
+
   }
 
   private class PlayerErrorMessageProvider implements ErrorMessageProvider<PlaybackException> {

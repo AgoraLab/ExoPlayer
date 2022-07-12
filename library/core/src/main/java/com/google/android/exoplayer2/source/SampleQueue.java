@@ -68,14 +68,15 @@ public class SampleQueue implements TrackOutput {
   /**
    * A listener for deliver user data
    */
-  public interface UserDataListener {
+  public interface SeiDataListener {
 
     /**
      * Called on the data delivery from extractor
-     * @param data  The user data
+     * @param type
+     * @param data
      * @param pts
      */
-    void onUserData(ParsableByteArray data, long pts);
+    void onSeiDataNotify(int type, ParsableByteArray data, long pts);
   }
 
   @VisibleForTesting /* package */ static final int SAMPLE_CAPACITY_INCREMENT = 1000;
@@ -87,7 +88,7 @@ public class SampleQueue implements TrackOutput {
   @Nullable private final DrmSessionManager drmSessionManager;
   @Nullable private final DrmSessionEventListener.EventDispatcher drmEventDispatcher;
   @Nullable private UpstreamFormatChangedListener upstreamFormatChangeListener;
-  @Nullable private UserDataListener userDataListener;
+  @Nullable private SeiDataListener seiDataListener;
 
   @Nullable private Format downstreamFormat;
   @Nullable private DrmSession currentDrmSession;
@@ -585,8 +586,8 @@ public class SampleQueue implements TrackOutput {
   }
 
 
-  public final void setUserDataListener( @Nullable UserDataListener listener) {
-    userDataListener = listener;
+  public final void setUserDataListener( @Nullable SeiDataListener listener) {
+    seiDataListener = listener;
   }
 
   // TrackOutput implementation. Called by the loading thread.
@@ -663,9 +664,9 @@ public class SampleQueue implements TrackOutput {
   }
 
   @Override
-  public void userDataNotify(ParsableByteArray data, long pts) {
-    if(null != userDataListener){
-      userDataListener.onUserData(data, pts);
+  public void seiDataNotify(int type, ParsableByteArray data, long pts) {
+    if(null != seiDataListener){
+      seiDataListener.onSeiDataNotify(type, data, pts);
     }
   }
 

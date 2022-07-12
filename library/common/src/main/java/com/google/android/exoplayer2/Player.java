@@ -1049,7 +1049,7 @@ public interface Player {
     /**
      * Called when user-data-unregisted of sei extract form stream. current only valid for hls
      * @param uuid  uuid in the user-data-unregisted content
-     * @param data  payload data in the user-data-unregisted content
+     * @param data  payload data in the user-data-unregisted type content of sei
      * @param pts   presentation time stamp extract from pes header of hls
      */
     default void onUserDataUnregistedAfterExtract(byte[] uuid, byte[] data, long pts){}
@@ -1057,10 +1057,24 @@ public interface Player {
     /**
      * Called when render time is equal to pts of user-data-unregisted. current only valid for hls
      * @param uuid  uuid in the user-data-unregisted content
-     * @param data  payload data in the user-data-unregisted content
+     * @param data  payload data in the user-data-unregisted type content of sei
      * @param pts   presentation time stamp extract from pes header of hls
      */
     default void onUserDataUnregistedWhenRender(byte[] uuid, byte[] data, long pts){}
+
+    /**
+     * Called when render time is equal to pts of agora-defined-data. current only valid for hls
+     * @param data payload data in the agora-defined-data type content of sei
+     * @param pts presentation time stamp extract from pes header of hls
+     */
+    default void onAgoraDefinedDataAfterExtract(byte[] data, long pts){}
+
+    /**
+     * Called when render time is equal to pts of agora-defined-data. current only valid for hls
+     * @param data  payload data in the agora-defined-data type content of sei
+     * @param pts presentation time stamp extract from pes header of hls
+     */
+    default void onAgoraDefinedDataWhenRender(byte[] data, long pts){}
   }
 
   /**
@@ -1319,7 +1333,8 @@ public interface Player {
     EVENT_METADATA,
     EVENT_DEVICE_INFO_CHANGED,
     EVENT_DEVICE_VOLUME_CHANGED,
-    EVENT_USER_DATA_UNREGISTED
+    EVENT_USER_DATA_UNREGISTED,
+    EVENT_AGORA_DEFINED_DATA
   })
   @interface Event {}
   /** {@link #getCurrentTimeline()} changed. */
@@ -1393,6 +1408,7 @@ public interface Player {
   /** */
   int EVENT_USER_DATA_UNREGISTED = 31;
 
+  int EVENT_AGORA_DEFINED_DATA = 32;
   /**
    * Commands that can be executed on a {@code Player}. One of {@link #COMMAND_PLAY_PAUSE}, {@link
    * #COMMAND_PREPARE}, {@link #COMMAND_STOP}, {@link #COMMAND_SEEK_TO_DEFAULT_POSITION}, {@link

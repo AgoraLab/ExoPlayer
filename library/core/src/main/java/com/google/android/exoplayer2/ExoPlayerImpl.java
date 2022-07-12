@@ -94,7 +94,6 @@ import com.google.android.exoplayer2.video.spherical.SphericalGLSurfaceView;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeoutException;
@@ -1848,13 +1847,15 @@ import java.util.concurrent.TimeoutException;
     }
 
     if(null != newPlaybackInfo.seiDataItemInfo &&
-        newPlaybackInfo.seiDataItemInfo != previousPlaybackInfo.seiDataItemInfo &&
-        (newPlaybackInfo.seiDataItemInfo.seiDataItem.getSeiDataType() ==
-            SeiDataItem.SEI_DATA_TYPE_USER_DATA_UNREGISTED)
-        ){
+        newPlaybackInfo.seiDataItemInfo != previousPlaybackInfo.seiDataItemInfo){
 
-      notifyUserDataUnregisted(newPlaybackInfo);
-
+      if(newPlaybackInfo.seiDataItemInfo.seiDataItem.getSeiDataType() ==
+          SeiDataItem.SEI_DATA_TYPE_USER_DATA_UNREGISTED){
+        notifyUserDataUnregisted(newPlaybackInfo);
+      } else if(newPlaybackInfo.seiDataItemInfo.seiDataItem.getSeiDataType() ==
+          SeiDataItem.SEI_DATA_TYPE_AGORA_DEFINED_DATA){
+        notifyAgoraDefinedData(newPlaybackInfo);
+      }
     }
 
     if (!previousPlaybackInfo.timeline.equals(newPlaybackInfo.timeline)) {
@@ -1995,6 +1996,29 @@ import java.util.concurrent.TimeoutException;
           listener -> listener.onUserDataUnregistedWhenRender(
               uuid,
               userData,
+              lastSeiDataItem.getPts())
+      );
+    }
+  }
+
+  private void notifyAgoraDefinedData(PlaybackInfo playbackInfo){
+
+    SeiDataItem lastSeiDataItem = playbackInfo.seiDataItemInfo.seiDataItem;
+
+    if(PlaybackInfo.SeiDataItemInfo.WHEN_EXTRACT == playbackInfo.seiDataItemInfo.when){
+
+      listeners.queueEvent(
+          Player.EVENT_AGORA_DEFINED_DATA,
+          listener -> listener.onAgoraDefinedDataAfterExtract(
+              lastSeiDataItem.getData().getData(),
+              lastSeiDataItem.getPts())
+      );
+    }
+    else if(PlaybackInfo.SeiDataItemInfo.WHEN_RENDER == playbackInfo.seiDataItemInfo.when){
+      listeners.queueEvent(
+          Player.EVENT_AGORA_DEFINED_DATA,
+          listener -> listener.onAgoraDefinedDataWhenRender(
+              lastSeiDataItem.getData().getData(),
               lastSeiDataItem.getPts())
       );
     }
