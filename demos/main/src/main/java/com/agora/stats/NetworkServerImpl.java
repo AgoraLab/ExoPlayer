@@ -93,7 +93,7 @@ public class NetworkServerImpl implements INetworkServer {
         conn.setDoOutput(true);
         conn.setUseCaches(false);
 
-        // Load in the headers passed in the request
+
         Enumeration<String> headerKeys = headers.keys();
         boolean shouldGzip = false;
         while (headerKeys.hasMoreElements()) {
@@ -106,7 +106,6 @@ public class NetworkServerImpl implements INetworkServer {
           }
         }
 
-        // Handle the case where we have a POST and need to put the body in
         if (method.equals("POST")) {
 
           byte[] bytes;

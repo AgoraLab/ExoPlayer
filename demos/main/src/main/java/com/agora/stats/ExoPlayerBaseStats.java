@@ -17,6 +17,7 @@ import com.agora.stats.events.SeekingEvent;
 import com.agora.stats.events.StreamSwitchEvent;
 import com.agora.stats.events.StuckEvent;
 import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.Player;
 import java.lang.ref.WeakReference;
 
 public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStatusTracker.Callback{
@@ -24,13 +25,14 @@ public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStat
   public static final String TAG = "ExoPlayerBaseStats";
 
   public enum PlayerState {
-    INIT, BUFFERING, REBUFFERING, PAUSED, PLAY, PLAYING, SEEKING, SEEKED, ERROR, ENDED
+    INIT, BUFFERING, REBUFFERING, READY, PAUSED, PLAYING, SEEKING, SEEKED, ERROR, ENDED
   }
 
   private CustomerConfigData customerConfigData;
   protected WeakReference<ExoPlayer> player;
 
   protected PlayerState state;
+  protected boolean firstFrameEventSent = false;
   protected long firstBufferingTimestamp = 0;
   protected long firstPlayTimestamp = 0;
 
@@ -63,6 +65,8 @@ public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStat
 
     this.eventStatusTracker = new EventStatusTracker(this);
     this.eventSender = new EventSender(new NetworkServerImpl("exo_report"), customerConfigData);
+
+    firstBufferingTimestamp = System.currentTimeMillis();
   }
 
   public void release(){
@@ -82,7 +86,7 @@ public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStat
   @Override
   public void asyncHandle(final IEvent event){}
 
-  // 处理事件
+
   @Override
   public void handle(final IEvent event){
     this.eventStatusTracker.handle(event);
@@ -129,8 +133,9 @@ public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStat
 
 
   protected void buffering() {
-    if (state == PlayerState.REBUFFERING || seekingInProgress
-        || state == PlayerState.SEEKED) {
+    if (state == PlayerState.REBUFFERING ||
+        state == PlayerState.SEEKING ||
+        state == PlayerState.SEEKED) {
       return;
     }
 
@@ -138,25 +143,35 @@ public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStat
       rebufferingStarted();
       return;
     }
-    // This is initial buffering event before playback starts
+
     state = PlayerState.BUFFERING;
-    firstBufferingTimestamp = System.currentTimeMillis();
+  }
+
+  protected void ready() {
+    if(state == PlayerState.REBUFFERING ||
+        state == PlayerState.BUFFERING ||
+        state == PlayerState.SEEKING
+    ){
+
+      if(state == PlayerState.SEEKING){
+        seeked();
+        return;
+      }
+
+      if (state == PlayerState.REBUFFERING) {
+        rebufferingEnded();
+      }
+
+      state = PlayerState.READY;
+    }
   }
 
   protected void pause() {
-    if (state == PlayerState.SEEKED) {
-      // No pause event after seeked
+    if (state == PlayerState.SEEKING ||  state == PlayerState.SEEKED || state == PlayerState.REBUFFERING) {
       return;
     }
-    if (state == PlayerState.REBUFFERING) {
-      rebufferingEnded();
-    }
-    if (seekingInProgress) {
-      seeked();
-      return;
-    }
-    state = PlayerState.PAUSED;
 
+    state = PlayerState.PAUSED;
     PauseEvent pauseEvent = new PauseEvent();
 
     if(null != this.player.get()){
@@ -169,36 +184,24 @@ public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStat
     this.handle(pauseEvent);
   }
 
-  protected void play() {
-
-    if (state == PlayerState.REBUFFERING
-            || seekingInProgress
-            || state == PlayerState.SEEKED
-    ) {
-      return;
-    }
-    state = PlayerState.PLAY;
-
-    if(0 == firstPlayTimestamp){
-      firstPlayTimestamp = System.currentTimeMillis();
-    }
-
-    PlayEvent playEvent = new PlayEvent();
-    playEvent.setProtocol("hls");
-    this.handle(playEvent);
-  }
-
 
   protected void playing() {
 
-    if (seekingInProgress) {
+    if (state == PlayerState.SEEKING) {
       return;
     }
-    if (state == PlayerState.PAUSED) {
-      play();
-    }
-    if (state == PlayerState.REBUFFERING) {
-      rebufferingEnded();
+
+    if (state == PlayerState.PAUSED ||
+        state == PlayerState.READY ||
+        state == PlayerState.SEEKED) {
+
+      if(0 == firstPlayTimestamp){
+        firstPlayTimestamp = System.currentTimeMillis();
+      }
+
+      PlayEvent playEvent = new PlayEvent();
+      playEvent.setProtocol("hls");
+      this.handle(playEvent);
     }
 
     state = PlayerState.PLAYING;
@@ -206,18 +209,12 @@ public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStat
 
 
   protected void seeking(long curPost, long seekPos) {
-    if (state == PlayerState.PLAYING) {
-      PauseEvent pauseEvent = new PauseEvent();
-
-      this.handle(pauseEvent);
-    }
 
     state = PlayerState.SEEKING;
     seekingInProgress = true;
     seekStartTimestamp = System.currentTimeMillis();
     this.seekCurrentPos = curPost;
     this.seekToPos = seekPos;
-
 
     SeekingEvent seekingEvent = new SeekingEvent();
     seekingEvent.setCurrentPos(curPost);
@@ -228,6 +225,7 @@ public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStat
 
   protected void seeked() {
 
+    state = PlayerState.SEEKED;
     SeekedEvent seekedEvent = new SeekedEvent();
     seekedEvent.setCurrentPos(this.seekCurrentPos);
     seekedEvent.setSeekPos(this.seekToPos);
@@ -257,13 +255,10 @@ public abstract class ExoPlayerBaseStats implements IEventProcessor,   EventStat
 
   protected void rebufferingStarted() {
     this.state = PlayerState.REBUFFERING;
-
-    // 在 播放后 又遇到缓冲，这个是卡顿的开始。 记录下卡顿开始的时间
     this.rebufferingStartTime = System.currentTimeMillis();
   }
 
   protected void rebufferingEnded() {
-    // 卡顿缓冲结束。 上报卡顿事件
     StuckEvent stuckEvent = new StuckEvent();
     stuckEvent.setDuration(System.currentTimeMillis() - this.rebufferingStartTime);
     this.handle(stuckEvent);

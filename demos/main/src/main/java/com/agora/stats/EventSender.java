@@ -114,7 +114,7 @@ public class EventSender implements IEventProcessor, INetworkServer.INetworkRequ
           networkServer = null;
         }
       });
-//      this.executorService.execute(releaseRunnable);
+
     }
   }
 
@@ -175,7 +175,7 @@ public class EventSender implements IEventProcessor, INetworkServer.INetworkRequ
         this.eventQueue.addAll(0, this.pendingEventsQueue);
         this.sendFailCount ++;
       }
-      else{ // 如果队列数量超过队列限制大小或者超过发送失败次数，则丢弃掉数据，不再重发
+      else{
         this.sendFailCount = 0;
       }
 
@@ -185,12 +185,11 @@ public class EventSender implements IEventProcessor, INetworkServer.INetworkRequ
     this.pendingEventsQueue.clear();
   }
 
-  // 事件入队
+
   private synchronized boolean enqueueEvent(final IEvent event) {
 
     if(this.eventQueue.size() < EventSender.MAX_QUEUE_SIZE){
 
-      // 入队
       if(null != event){
         this.eventQueue.add(event);
       }
@@ -208,7 +207,7 @@ public class EventSender implements IEventProcessor, INetworkServer.INetworkRequ
 
 
   private synchronized void processEventQueue(final boolean flushAllEvent) {
-    // 发送数据后， 转到padding 队列上
+
     int eventCount = (!flushAllEvent && this.eventQueue.size() > MAX_SEND_EVENT_COUNT_ONCE) ? MAX_SEND_EVENT_COUNT_ONCE : this.eventQueue.size();
 
     if(0 == eventCount){

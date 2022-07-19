@@ -17,7 +17,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**事件状态追踪器，根据传入的事件判断是否创建新的事件*/
 public class EventStatusTracker implements IEventProcessor
 {
   public static final String TAG = "EventStatusTracker";
@@ -102,7 +101,6 @@ public class EventStatusTracker implements IEventProcessor
 
   @Override
   public void asyncHandle(final IEvent event){
-    // do nothing
   }
 
   @Override
@@ -110,7 +108,7 @@ public class EventStatusTracker implements IEventProcessor
     if(EventStatusTracker.needProcessEventFilter.contains(event.getType())){
 
       boolean needOutput = true;
-      // 需要处理的事件，并保存必要状态
+
       if(event instanceof StuckEvent){
 
         synchronized (this.statusContext){
@@ -145,7 +143,7 @@ public class EventStatusTracker implements IEventProcessor
       }
     }
     else {
-      // 直接转发
+
       if(null != this.callback){
         this.callback.onEventOutput(event);
       }
@@ -179,7 +177,6 @@ public class EventStatusTracker implements IEventProcessor
       playstateEvent.setReportInterval(PLAY_STATUS_SCHEDULE_INTERVAL_TIME_MS);
 
       this.callback.onEventOutput(playstateEvent);
-
     }
   }
 

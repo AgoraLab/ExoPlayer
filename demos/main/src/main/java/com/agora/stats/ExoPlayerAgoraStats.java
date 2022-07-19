@@ -134,7 +134,7 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
 
   @Override
   public void onIsPlayingChanged(AnalyticsListener.EventTime eventTime, boolean isPlaying) {
-    // playing 状态切换
+
     Logger.d(TAG, "onIsPlayingChanged： " + isPlaying);
     if(isPlaying){
       playing();
@@ -152,34 +152,45 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
 
   public void onPlaybackStateChanged(int playbackState){
 
-    PlayerState state = this.state;
-
     switch (playbackState) {
 
       case Player.STATE_IDLE:
-
-        if (state == PlayerState.PLAY || state == PlayerState.PLAYING) {
-          pause();
-        }
+        onIdel();
         break;
 
       case Player.STATE_BUFFERING:
-        buffering();
+        onBuffering();
         break;
 
       case Player.STATE_READY:
-        pause();
+        onReady();
         break;
 
       case Player.STATE_ENDED:
-        ended();
+        onEnd();
         break;
 
       default:
-        // don't care
         break;
     }
 
+  }
+
+  private void onIdel() {
+    state = PlayerState.INIT;
+    pause();
+  }
+
+  private void onBuffering() {
+    buffering();
+  }
+
+  private void onReady() {
+    ready();
+  }
+
+  private void onEnd() {
+    ended();
   }
 
 
@@ -188,7 +199,7 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
     Logger.d(TAG, "onPlayerError: " + error.getMessage());
 
     ErrorEvent errorEvent = new ErrorEvent();
-    errorEvent.setErrorMsg(error.getMessage());
+    errorEvent.setErrorMsg(error.getMessage() + "-" + error.getCause().toString());
     this.handle(errorEvent);
   }
 
@@ -234,7 +245,7 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
           this.playUrl != hlsManifest.mediaPlaylist.baseUri){
 
         if(null != this.playUrl && !this.playUrl.isEmpty()){
-          // streamId field of StreamSwitchEvent use old value
+
           StreamSwitchEvent streamSwitchEvent = new StreamSwitchEvent();
           streamSwitchEvent.setStreamId(this.streamId);
           streamSwitchEvent.setNewStreamId(Utils.MD5(hlsManifest.mediaPlaylist.baseUri));
@@ -270,15 +281,16 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
     Logger.d(TAG, "onTracksInfoChanged");
   }
 
-
   @Override
   public void onRenderedFirstFrame(EventTime eventTime, Object output, long renderTimeMs) {
     Logger.d(TAG, "onRenderedFirstFrame");
-    FirstframerenderedEvent firstframerenderedEvent = new FirstframerenderedEvent();
-    firstframerenderedEvent.setCostTime(System.currentTimeMillis() - firstBufferingTimestamp);
-    this.handle(firstframerenderedEvent);
+    if(0 != firstBufferingTimestamp && !firstFrameEventSent){
+      FirstframerenderedEvent firstframerenderedEvent = new FirstframerenderedEvent();
+      firstframerenderedEvent.setCostTime(System.currentTimeMillis() - firstBufferingTimestamp);
+      this.handle(firstframerenderedEvent);
+      firstFrameEventSent = true;
+    }
   }
-
 
   @Override
   public void onAudioAttributesChanged(AnalyticsListener.EventTime eventTime,
@@ -371,11 +383,5 @@ public class ExoPlayerAgoraStats extends ExoPlayerBaseStats implements Analytics
       int height) {
     Logger.d(TAG, "onSurfaceSizeChanged");
   }
-
-
-
-
-
-
 
 }
